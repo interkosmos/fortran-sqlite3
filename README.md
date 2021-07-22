@@ -80,7 +80,7 @@ program example
     rc = sqlite3_bind_text(stmt, 1, 'one')
     rc = sqlite3_bind_int(stmt, 2, 12345)
 
-    ! Insert values the values.
+    ! Run the statement.
     rc = sqlite3_step(stmt)
     if (rc /= SQLITE_DONE) print '("sqlite3_step(): failed")'
 
