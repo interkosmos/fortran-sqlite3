@@ -103,7 +103,7 @@ module sqlite
             integer(kind=c_int)            :: sqlite3_close
         end function sqlite3_close
 
-        ! double sqlite3_column_double(sqlite3_stmt*, int icol)
+        ! double sqlite3_column_double(sqlite3_stmt *stmt, int icol)
         function sqlite3_column_double(stmt, icol) bind(c, name='sqlite3_column_double')
             import :: c_double, c_int, c_ptr
             type(c_ptr),         intent(in), value :: stmt
@@ -111,7 +111,7 @@ module sqlite
             real(kind=c_double)                    :: sqlite3_column_double
         end function sqlite3_column_double
 
-        ! int sqlite3_column_int(sqlite3_stmt*, int icol)
+        ! int sqlite3_column_int(sqlite3_stmt *stmt, int icol)
         function sqlite3_column_int(stmt, icol) bind(c, name='sqlite3_column_int')
             import :: c_int, c_ptr
             type(c_ptr),         intent(in), value :: stmt
@@ -119,7 +119,7 @@ module sqlite
             integer(kind=c_int)                    :: sqlite3_column_int
         end function sqlite3_column_int
 
-        ! const unsigned char *sqlite3_column_text(sqlite3_stmt*, int icol)
+        ! const unsigned char *sqlite3_column_text(sqlite3_stmt *stmt, int icol)
         function sqlite3_column_text_(stmt, icol) bind(c, name='sqlite3_column_text')
             import :: c_int, c_ptr
             type(c_ptr),         intent(in), value :: stmt
@@ -127,7 +127,7 @@ module sqlite
             type(c_ptr)                            :: sqlite3_column_text_
         end function sqlite3_column_text_
 
-        ! int sqlite3_column_type(sqlite3_stmt*, int icol)
+        ! int sqlite3_column_type(sqlite3_stmt *stmt, int icol)
         function sqlite3_column_type(stmt, icol) bind(c, name='sqlite3_column_type')
             import :: c_int, c_ptr
             type(c_ptr),         intent(in), value :: stmt

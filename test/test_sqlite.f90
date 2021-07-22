@@ -15,7 +15,7 @@ program test_sqlite
     if (rc /= SQLITE_OK) stop 'sqlite3_open(): failed'
 
     ! Create table.
-    rc = sqlite3_exec(db, "CREATE TABLE test_table (" // &
+    rc = sqlite3_exec(db, "CREATE TABLE " // DB_TABLE // " (" // &
                           "id     INTEGER PRIMARY KEY AUTOINCREMENT," // &
                           "string VARCHAR(32)," // &
                           "value  INTEGER)", errmsg)
