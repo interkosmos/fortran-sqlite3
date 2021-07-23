@@ -6,7 +6,7 @@ Make sure that `libsqlite3` is installed with development headers. On FreeBSD,
 run:
 
 ```
-# pkg install database/sqlite3
+# pkg install databases/sqlite3
 ```
 
 Then, clone the GitHub repository:
@@ -129,7 +129,6 @@ contains
         print *
     end subroutine print_values
 end program example
-
 ```
 
 Compile, link, and run the example with:
@@ -139,6 +138,16 @@ $ gfortran -o example example.f90 libfortran-sqlite3.a -lsqlite3
 $ ./example
            1         one       12345
 ```
+
+## Compatibility
+Note that the wrapper function `sqlite3_bind_text()` selects destructor type
+`SQLITE_TRANSIENT` if argument `destructor` is not passed, in contrast to the
+SQLite default `SQLITE_STATIC`. Therefore, SQLite will make a copy of the given
+value. Otherwise, the passed variable would go out of scope before SQLite could
+read the string completely, leading to possible data corruption.
+
+It is recommend to call the interface `sqlite3_bind_text_()` (trailing
+underscore) directly, if `SQLITE_STATIC` is preferred.
 
 ## Licence
 ISC
