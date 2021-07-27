@@ -146,7 +146,7 @@ SQLite default `SQLITE_STATIC`. Therefore, SQLite will make a copy of the given
 value. Otherwise, the passed variable would go out of scope before SQLite could
 read the string completely, leading to possible data corruption.
 
-It is recommend to call the interface `sqlite3_bind_text_()` (trailing
+It is recommended to call the interface `sqlite3_bind_text_()` (trailing
 underscore) directly, if `SQLITE_STATIC` is preferred.
 
 ## Licence

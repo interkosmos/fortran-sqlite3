@@ -47,6 +47,41 @@ module sqlite
     integer, parameter, public :: SQLITE_ROW        = 100
     integer, parameter, public :: SQLITE_DONE       = 101
 
+    integer, parameter, public :: SQLITE_CREATE_INDEX        = 1
+    integer, parameter, public :: SQLITE_CREATE_TABLE        = 2
+    integer, parameter, public :: SQLITE_CREATE_TEMP_INDEX   = 3
+    integer, parameter, public :: SQLITE_CREATE_TEMP_TABLE   = 4
+    integer, parameter, public :: SQLITE_CREATE_TEMP_TRIGGER = 5
+    integer, parameter, public :: SQLITE_CREATE_TEMP_VIEW    = 6
+    integer, parameter, public :: SQLITE_CREATE_TRIGGER      = 7
+    integer, parameter, public :: SQLITE_CREATE_VIEW         = 8
+    integer, parameter, public :: SQLITE_DELETE              = 9
+    integer, parameter, public :: SQLITE_DROP_INDEX          = 10
+    integer, parameter, public :: SQLITE_DROP_TABLE          = 11
+    integer, parameter, public :: SQLITE_DROP_TEMP_INDEX     = 12
+    integer, parameter, public :: SQLITE_DROP_TEMP_TABLE     = 13
+    integer, parameter, public :: SQLITE_DROP_TEMP_TRIGGER   = 14
+    integer, parameter, public :: SQLITE_DROP_TEMP_VIEW      = 15
+    integer, parameter, public :: SQLITE_DROP_TRIGGER        = 16
+    integer, parameter, public :: SQLITE_DROP_VIEW           = 17
+    integer, parameter, public :: SQLITE_INSERT              = 18
+    integer, parameter, public :: SQLITE_PRAGMA              = 19
+    integer, parameter, public :: SQLITE_READ                = 20
+    integer, parameter, public :: SQLITE_SELECT              = 21
+    integer, parameter, public :: SQLITE_TRANSACTION         = 22
+    integer, parameter, public :: SQLITE_UPDATE              = 23
+    integer, parameter, public :: SQLITE_ATTACH              = 24
+    integer, parameter, public :: SQLITE_DETACH              = 25
+    integer, parameter, public :: SQLITE_ALTER_TABLE         = 26
+    integer, parameter, public :: SQLITE_REINDEX             = 27
+    integer, parameter, public :: SQLITE_ANALYZE             = 28
+    integer, parameter, public :: SQLITE_CREATE_VTABLE       = 29
+    integer, parameter, public :: SQLITE_DROP_VTABLE         = 30
+    integer, parameter, public :: SQLITE_FUNCTION            = 31
+    integer, parameter, public :: SQLITE_SAVEPOINT           = 32
+    integer, parameter, public :: SQLITE_COPY                = 0
+    integer, parameter, public :: SQLITE_RECURSIVE           = 33
+
     integer(kind=c_size_t), parameter, public :: SQLITE_STATIC    = 0
     integer(kind=c_size_t), parameter, public :: SQLITE_TRANSIENT = -1
 
@@ -71,6 +106,10 @@ module sqlite
     public :: sqlite3_prepare_
     public :: sqlite3_reset
     public :: sqlite3_step
+    public :: sqlite3_update_hook
+
+    public :: c_f_str_ptr
+    public :: c_strlen
 
     interface
         ! int sqlite3_bind_double(sqlite3_stmt *stmt, int idx, double val)
@@ -158,7 +197,7 @@ module sqlite
             integer(kind=c_int)                    :: sqlite3_column_type
         end function sqlite3_column_type
 
-        ! int sqlite3_exec(sqlite3* db, const char *sql, int (*callback)(void*,int,char**,char**), void *client_data, char **errmsg)
+        ! int sqlite3_exec(sqlite3* db, const char *sql, int (*callback)(void *, int, char **, char **), void *client_data, char **errmsg)
         function sqlite3_exec_(db, sql, callback, client_data, errmsg) bind(c, name='sqlite3_exec')
             import :: c_char, c_funptr, c_int, c_ptr
             type(c_ptr),            intent(in), value :: db
@@ -215,6 +254,35 @@ module sqlite
             type(c_ptr), intent(in), value :: stmt
             integer(kind=c_int)            :: sqlite3_step
         end function sqlite3_step
+
+        ! void *sqlite3_update_hook(sqlite3 *db, void *update_callback, void *udp)
+        !
+        ! Returns the previous user-data pointer (if applicable).
+        !
+        ! Arguments:
+        !
+        !   db                  -   A database connection.
+        !   update_callback     -   An application-defined callback function that is called when a database row is modified.
+        !   udp                 -   An application-defined user-data pointer. This value is made available to the update callback.
+        !
+        !
+        ! void update_callback(void *udp, int type, const char *db_name, const char *tbl_name, sqlite3_int64 rowid)
+        !
+        ! Arguments:
+        !
+        !   udp                 -   The application-defined user-data pointer.
+        !   type                -   The type of database update. Possible values are SQLITE_INSERT, SQLITE_UPDATE, and SQLITE_DELETE.
+        !   db_name             -   The logical name of the database that is being modified. Names include main, temp, or any name passed to ATTACH DATABASE.
+        !   tbl_name            -   The name of the table that is being modified.
+        !   rowid               -   The ROWID of the row being modified. In the case of an UPDATE, this is the ROWID value after the modification has taken place.
+        !
+        function sqlite3_update_hook(db, update_callback, udp) bind(c, name='sqlite3_update_hook')
+            import :: c_funptr, c_ptr
+            type(c_ptr),    intent(in), value :: db
+            type(c_funptr), intent(in), value :: update_callback
+            type(c_ptr),    intent(in), value :: udp
+            type(c_ptr)                       :: sqlite3_update_hook
+        end function sqlite3_update_hook
     end interface
 
     interface
