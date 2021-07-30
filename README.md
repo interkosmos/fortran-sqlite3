@@ -26,6 +26,8 @@ Simply execute the Fortran Package Manager:
 $ fpm build
 ```
 
+The output files are written to `build/`.
+
 ### make
 Execute the provided `Makefile` with `make`:
 

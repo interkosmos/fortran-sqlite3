@@ -11,11 +11,14 @@ program test_sqlite
     type(c_ptr)                   :: stmt   ! SQLite statement.
     type(c_ptr)                   :: udp    ! User-data pointer.
 
+    print '("SQLite library version: ", a)', sqlite3_libversion()
+    print '("SQLite source ID: ", a)', sqlite3_sourceid()
+
     ! Open SQLite database.
     rc = sqlite3_open(DB_FILE, db)
     if (rc /= SQLITE_OK) stop 'sqlite3_open(): failed'
 
-    ! Create update hook.
+    ! Register update hook.
     udp = sqlite3_update_hook(db, c_funloc(update_callback), c_null_ptr)
 
     ! Create table.
@@ -73,7 +76,7 @@ program test_sqlite
     rc = sqlite3_close(db)
     if (rc /= SQLITE_OK) stop 'sqlite3_close(): failed'
 contains
-    ! void update_callback(void* udp, int type, const char* db_name, const char* tbl_name, sqlite3_int64 rowid)
+    ! void update_callback(void* udp, int type, const char *db_name, const char *tbl_name, sqlite3_int64 rowid)
     subroutine update_callback(udp, type, db_name, tbl_name, rowid) bind(c)
         !! Callback routine that is called whenever a row is inserted, updated,
         !! or deleted in the database. Has to be registered with
