@@ -23,7 +23,7 @@ application against `libfortran-sqlite3.a` and `-lsqlite3`.
 Simply execute the Fortran Package Manager:
 
 ```
-$ fpm build
+$ fpm build --profile release
 ```
 
 The output files are written to `build/`.
@@ -46,7 +46,7 @@ $ make FC=ifort
 The following SQL schema will be created by the example:
 
 ```sql
-CREATE TABLE test_table (
+CREATE TABLE example_table (
     id     INTEGER PRIMARY KEY AUTOINCREMENT,
     string VARCHAR(32),
     value  INTEGER
