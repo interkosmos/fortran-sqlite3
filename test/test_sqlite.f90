@@ -10,8 +10,8 @@ module callbacks
 contains
     ! int callback(void *client_data, int argc, char **argv, char **cols)
     integer(kind=c_int) function exec_callback(client_data, argc, argv, cols) bind(c)
-        !! Callback function fot `sqlite3_exec()` that just prints the passed
-        !! rows of the SQL query.
+        !! Callback function for `sqlite3_exec()` that just prints the passed
+        !! row of the SQL query.
         type(c_ptr),         intent(in), value :: client_data
         integer(kind=c_int), intent(in), value :: argc
         type(c_ptr),         intent(in)        :: argv(*)
