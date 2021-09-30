@@ -4,7 +4,7 @@
 FC      = gfortran
 AR      = ar
 PREFIX  = /usr/local
-DEBUG   = #-ggdb3 -O0
+DEBUG   = -Wno-unused-dummy-argument #-ggdb3 -O0
 
 FFLAGS  = $(DEBUG) -Wall -fmax-errors=1 -fcheck=all
 LDFLAGS = -I$(PREFIX)/include/ -L$(PREFIX)/lib/

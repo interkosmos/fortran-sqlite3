@@ -503,14 +503,16 @@ contains
         call c_f_str_ptr(ptr, sqlite3_column_text)
     end function sqlite3_column_text
 
-    function sqlite3_exec(db, sql, errmsg)
+    function sqlite3_exec(db, sql, callback, client_data, errmsg)
         type(c_ptr),                   intent(in)            :: db
         character(len=*),              intent(in)            :: sql
+        type(c_funptr),                intent(in)            :: callback
+        type(c_ptr),                   intent(in)            :: client_data
         character(len=:), allocatable, intent(out), optional :: errmsg
         integer                                              :: sqlite3_exec
         type(c_ptr)                                          :: ptr
 
-        sqlite3_exec = sqlite3_exec_(db, sql // c_null_char, c_null_ptr, c_null_ptr, ptr)
+        sqlite3_exec = sqlite3_exec_(db, sql // c_null_char, callback, client_data, ptr)
         if (.not. c_associated(ptr)) return
 
         if (present(errmsg)) then

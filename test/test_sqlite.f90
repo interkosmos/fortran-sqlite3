@@ -1,81 +1,44 @@
 ! test_sqlite.f90
-program test_sqlite
+module callbacks
     use, intrinsic :: iso_c_binding
     use :: sqlite
-    character(len=*), parameter :: DB_FILE  = 'test.db'
-    character(len=*), parameter :: DB_TABLE = 'test_table'
+    implicit none
+    private
 
-    character(len=:), allocatable :: errmsg ! Error message.
-    integer                       :: rc     ! Return code.
-    type(c_ptr)                   :: db     ! SQlite database.
-    type(c_ptr)                   :: stmt   ! SQLite statement.
-    type(c_ptr)                   :: udp    ! User-data pointer.
-
-    print '("SQLite library version: ", a)', sqlite3_libversion()
-    print '("SQLite source ID: ", a)', sqlite3_sourceid()
-
-    ! Open SQLite database.
-    rc = sqlite3_open(DB_FILE, db)
-    if (rc /= SQLITE_OK) stop 'sqlite3_open(): failed'
-
-    ! Register update hook.
-    udp = sqlite3_update_hook(db, c_funloc(update_callback), c_null_ptr)
-
-    ! Create table.
-    rc = sqlite3_exec(db, "CREATE TABLE " // DB_TABLE // " (" // &
-                          "id     INTEGER PRIMARY KEY AUTOINCREMENT," // &
-                          "string VARCHAR(32)," // &
-                          "value  INTEGER)", errmsg)
-    if (rc /= SQLITE_OK) print '("sqlite3_exec(): ", a)', errmsg
-
-    ! Insert values.
-    rc = sqlite3_exec(db, "INSERT INTO " // DB_TABLE // "(string, value) VALUES('one', 12345)", errmsg)
-    if (rc /= SQLITE_OK) print '("sqlite3_exec(): ", a)', errmsg
-
-    ! Prepare statement.
-    rc = sqlite3_prepare(db, "INSERT INTO " // DB_TABLE // "(string, value) VALUES(?, ?)", stmt)
-    if (rc /= SQLITE_OK) print '("sqlite3_prepare(): failed")'
-
-    ! Bind values.
-    rc = sqlite3_bind_text(stmt, 1, 'two')
-    if (rc /= SQLITE_OK) print '("sqlite3_bind_text(): failed")'
-
-    rc = sqlite3_bind_int(stmt, 2, 987654321)
-    if (rc /= SQLITE_OK) print '("sqlite3_bind_int(): failed")'
-
-    ! Insert values.
-    rc = sqlite3_step(stmt)
-    if (rc /= SQLITE_DONE) print '("sqlite3_step(): failed")'
-
-    ! Reset statement, add more values.
-    rc = sqlite3_reset(stmt)
-    if (rc /= SQLITE_OK) print '("sqlite3_reset(): failed")'
-    rc = sqlite3_bind_text(stmt, 1, 'three')
-    if (rc /= SQLITE_OK) print '("sqlite3_bind_text(): failed")'
-    rc = sqlite3_bind_int(stmt, 2, 192837465)
-    if (rc /= SQLITE_OK) print '("sqlite3_bind_int(): failed")'
-    rc = sqlite3_step(stmt)
-    if (rc /= SQLITE_DONE) print '("sqlite3_step(): failed")'
-
-    ! Clean up.
-    rc = sqlite3_finalize(stmt)
-    if (rc /= SQLITE_OK) print '("sqlite3_finalize(): failed")'
-
-    ! Read values.
-    rc = sqlite3_prepare(db, "SELECT * FROM " // DB_TABLE, stmt)
-    if (rc /= SQLITE_OK) print '("sqlite3_prepare(): failed")'
-
-    do while (sqlite3_step(stmt) /= SQLITE_DONE)
-        call print_values(stmt, 3)
-    end do
-
-    rc = sqlite3_finalize(stmt)
-    if (rc /= SQLITE_OK) print '("sqlite3_finalize(): failed")'
-
-    ! Close SQLite handle.
-    rc = sqlite3_close(db)
-    if (rc /= SQLITE_OK) stop 'sqlite3_close(): failed'
+    public :: exec_callback
+    public :: update_callback
 contains
+    ! int callback(void *client_data, int argc, char **argv, char **cols)
+    integer(kind=c_int) function exec_callback(client_data, argc, argv, cols) bind(c)
+        !! Callback function fot `sqlite3_exec()` that just prints the passed
+        !! rows of the SQL query.
+        type(c_ptr),         intent(in), value :: client_data
+        integer(kind=c_int), intent(in), value :: argc
+        type(c_ptr),         intent(in)        :: argv(*)
+        type(c_ptr),         intent(in)        :: cols(*)
+        character(len=:), allocatable          :: buf
+        integer                                :: i
+        integer(kind=8)                        :: n
+
+        exec_callback = 1 ! No more rows on error.
+
+        print '("--- There are ", i0, " values in selected row")', argc
+        if (argc == 0) return
+
+        do i = 1, argc
+            if (.not. c_associated(argv(i))) cycle
+            n = c_strlen(argv(i))
+            if (n <= 0) cycle
+
+            allocate (character(len=n) :: buf)
+            call c_f_str_ptr(argv(i), buf)
+            print '("VALUE: ", a)', buf
+            deallocate (buf)
+        end do
+
+        exec_callback = 0
+    end function exec_callback
+
     ! void update_callback(void* udp, int type, const char *db_name, const char *tbl_name, sqlite3_int64 rowid)
     subroutine update_callback(udp, type, db_name, tbl_name, rowid) bind(c)
         !! Callback routine that is called whenever a row is inserted, updated,
@@ -108,7 +71,95 @@ contains
                     rowid, tbl_str, db_str
         end select
     end subroutine update_callback
+end module callbacks
 
+program test_sqlite
+    use, intrinsic :: iso_c_binding
+    use :: sqlite
+    use :: callbacks
+    character(len=*), parameter :: DB_FILE  = 'test.db'
+    character(len=*), parameter :: DB_TABLE = 'test_table'
+
+    character(len=:), allocatable :: errmsg ! Error message.
+    integer                       :: rc     ! Return code.
+    type(c_ptr)                   :: db     ! SQLite database.
+    type(c_ptr)                   :: stmt   ! SQLite statement.
+    type(c_ptr)                   :: udp    ! User-data pointer.
+
+    print '("SQLite library version: ", a)', sqlite3_libversion()
+    print '("SQLite source ID: ", a)', sqlite3_sourceid()
+
+    ! Open SQLite database.
+    rc = sqlite3_open(DB_FILE, db)
+    if (rc /= SQLITE_OK) stop 'sqlite3_open(): failed'
+
+    ! Register update hook.
+    udp = sqlite3_update_hook(db, c_funloc(update_callback), c_null_ptr)
+
+    ! Create table.
+    rc = sqlite3_exec(db, "CREATE TABLE " // DB_TABLE // " (" // &
+                          "id     INTEGER PRIMARY KEY AUTOINCREMENT," // &
+                          "string VARCHAR(32)," // &
+                          "value  INTEGER)", &
+                      c_null_ptr, c_null_ptr, errmsg)
+    if (rc /= SQLITE_OK) print '("sqlite3_exec(): ", a)', errmsg
+
+    ! Insert values.
+    rc = sqlite3_exec(db, "INSERT INTO " // DB_TABLE // "(string, value) VALUES('one', 12345)", &
+                      c_null_ptr, c_null_ptr, errmsg)
+    if (rc /= SQLITE_OK) print '("sqlite3_exec(): ", a)', errmsg
+
+    ! Prepare statement.
+    rc = sqlite3_prepare(db, "INSERT INTO " // DB_TABLE // "(string, value) VALUES(?, ?)", stmt)
+    if (rc /= SQLITE_OK) print '("sqlite3_prepare(): failed")'
+
+    ! Bind values.
+    rc = sqlite3_bind_text(stmt, 1, 'two')
+    if (rc /= SQLITE_OK) print '("sqlite3_bind_text(): failed")'
+
+    rc = sqlite3_bind_int(stmt, 2, 987654321)
+    if (rc /= SQLITE_OK) print '("sqlite3_bind_int(): failed")'
+
+    ! Insert values.
+    rc = sqlite3_step(stmt)
+    if (rc /= SQLITE_DONE) print '("sqlite3_step(): failed")'
+
+    ! Reset statement, add more values.
+    rc = sqlite3_reset(stmt)
+    if (rc /= SQLITE_OK) print '("sqlite3_reset(): failed")'
+    rc = sqlite3_bind_text(stmt, 1, 'three')
+    if (rc /= SQLITE_OK) print '("sqlite3_bind_text(): failed")'
+    rc = sqlite3_bind_int(stmt, 2, 192837465)
+    if (rc /= SQLITE_OK) print '("sqlite3_bind_int(): failed")'
+    rc = sqlite3_step(stmt)
+    if (rc /= SQLITE_DONE) print '("sqlite3_step(): failed")'
+
+    ! Clean up.
+    rc = sqlite3_finalize(stmt)
+    if (rc /= SQLITE_OK) print '("sqlite3_finalize(): failed")'
+
+    ! Read values.
+    print '(/, a)', '--- TESTING PREPARE/STEP'
+    rc = sqlite3_prepare(db, "SELECT * FROM " // DB_TABLE, stmt)
+    if (rc /= SQLITE_OK) print '("sqlite3_prepare(): failed")'
+
+    do while (sqlite3_step(stmt) /= SQLITE_DONE)
+        call print_values(stmt, 3)
+    end do
+
+    rc = sqlite3_finalize(stmt)
+    if (rc /= SQLITE_OK) print '("sqlite3_finalize(): failed")'
+
+    ! Read values using callback function.
+    print '(/, a)', '--- TESTING CALLBACK FUNCTION'
+    rc = sqlite3_exec(db, "SELECT * FROM " // DB_TABLE, &
+                      c_funloc(exec_callback), c_null_ptr, errmsg)
+    if (rc /= SQLITE_OK) print '("sqlite3_exec(): ", a)', errmsg
+
+    ! Close SQLite handle.
+    rc = sqlite3_close(db)
+    if (rc /= SQLITE_OK) stop 'sqlite3_close(): failed'
+contains
     subroutine print_values(stmt, ncols)
         type(c_ptr), intent(inout) :: stmt
         integer,     intent(in)    :: ncols
