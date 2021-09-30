@@ -59,7 +59,7 @@ inserts some values, then reads them back in, and prints them to console:
 ```fortran
 ! example.f90
 program example
-    use, intrinsic :: iso_c_binding, only: c_ptr
+    use, intrinsic :: iso_c_binding
     use :: sqlite
     character(len=:), allocatable :: errmsg
     integer                       :: rc
@@ -73,7 +73,7 @@ program example
     rc = sqlite3_exec(db, "CREATE TABLE example_table (" // &
                           "id     INTEGER PRIMARY KEY AUTOINCREMENT," // &
                           "string VARCHAR(32)," // &
-                          "value  INTEGER)", errmsg)
+                          "value  INTEGER)", c_null_ptr, c_null_ptr, errmsg)
     if (rc /= SQLITE_OK) print '("sqlite3_exec(): ", a)', errmsg
 
     ! Create a prepared statement.
