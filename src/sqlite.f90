@@ -400,6 +400,7 @@ module sqlite
         !   db_name             -   The logical name of the database that is being modified. Names include main, temp, or any name passed to ATTACH DATABASE.
         !   tbl_name            -   The name of the table that is being modified.
         !   rowid               -   The ROWID of the row being modified. In the case of an UPDATE, this is the ROWID value after the modification has taken place.
+        !
         function sqlite3_update_hook(db, update_callback, udp) bind(c, name='sqlite3_update_hook')
             import :: c_funptr, c_ptr
             type(c_ptr),    intent(in), value :: db
@@ -452,26 +453,28 @@ module sqlite
         end function c_strlen
     end interface
 contains
-    subroutine c_f_str_ptr(c_str, f_str)
-        type(c_ptr),      intent(in)    :: c_str
-        character(len=*), intent(out)   :: f_str
-        character(kind=c_char), pointer :: chars(:)
-        integer                         :: i
+    pure function copy(a)
+        character, intent(in)  :: a(:)
+        character(len=size(a)) :: copy
+        integer(kind=8)        :: i
 
-        if (.not. c_associated(c_str)) then
-            f_str = ' '
-            return
-        end if
-
-        call c_f_pointer(c_str, chars, [ huge(0) ])
-        i = 1
-
-        do while (chars(i) /= c_null_char .and. i <= len(f_str))
-            f_str(i:i) = chars(i)
-            i = i + 1
+        do i = 1, size(a)
+            copy(i:i) = a(i)
         end do
+    end function copy
 
-        if (i < len(f_str)) f_str(i:) = ' '
+    subroutine c_f_str_ptr(c_str, f_str)
+        type(c_ptr),                   intent(in)  :: c_str
+        character(len=:), allocatable, intent(out) :: f_str
+        character(kind=c_char), pointer            :: ptrs(:)
+        integer(kind=8)                            :: sz
+
+        if (.not. c_associated(c_str)) return
+        sz = c_strlen(c_str)
+        if (sz <= 0) return
+        call c_f_pointer(c_str, ptrs, [ sz ])
+        allocate (character(len=sz) :: f_str)
+        f_str = copy(ptrs)
     end subroutine c_f_str_ptr
 
     function sqlite3_bind_text(stmt, idx, val, destructor)
@@ -499,7 +502,6 @@ contains
 
         ptr = sqlite3_column_text_(stmt, icol)
         if (.not. c_associated(ptr)) return
-        allocate (character(len=c_strlen(ptr)) :: sqlite3_column_text)
         call c_f_str_ptr(ptr, sqlite3_column_text)
     end function sqlite3_column_text
 
@@ -515,10 +517,7 @@ contains
         sqlite3_exec = sqlite3_exec_(db, sql // c_null_char, callback, client_data, ptr)
         if (.not. c_associated(ptr)) return
 
-        if (present(errmsg)) then
-            allocate (character(len=c_strlen(ptr)) :: errmsg)
-            call c_f_str_ptr(ptr, errmsg)
-        end if
+        if (present(errmsg)) call c_f_str_ptr(ptr, errmsg)
     end function sqlite3_exec
 
     function sqlite3_libversion()
@@ -527,7 +526,6 @@ contains
 
         ptr = sqlite3_libversion_()
         if (.not. c_associated(ptr)) return
-        allocate (character(len=c_strlen(ptr)) :: sqlite3_libversion)
         call c_f_str_ptr(ptr, sqlite3_libversion)
     end function sqlite3_libversion
 
@@ -554,7 +552,6 @@ contains
 
         ptr = sqlite3_libversion_()
         if (.not. c_associated(ptr)) return
-        allocate (character(len=c_strlen(ptr)) :: sqlite3_sourceid)
         call c_f_str_ptr(ptr, sqlite3_sourceid)
     end function sqlite3_sourceid
 
@@ -565,7 +562,6 @@ contains
 
         ptr = sqlite3_str_value_(str)
         if (.not. c_associated(ptr)) return
-        allocate (character(len=c_strlen(ptr)) :: sqlite3_str_value)
         call c_f_str_ptr(ptr, sqlite3_str_value)
     end function sqlite3_str_value
 end module sqlite

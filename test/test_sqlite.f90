@@ -18,7 +18,6 @@ contains
         type(c_ptr),         intent(in)        :: cols(*)
         character(len=:), allocatable          :: buf
         integer                                :: i
-        integer(kind=8)                        :: n
 
         exec_callback = 1 ! No more rows on error.
 
@@ -27,13 +26,9 @@ contains
 
         do i = 1, argc
             if (.not. c_associated(argv(i))) cycle
-            n = c_strlen(argv(i))
-            if (n <= 0) cycle
-
-            allocate (character(len=n) :: buf)
             call c_f_str_ptr(argv(i), buf)
             print '("VALUE: ", a)', buf
-            deallocate (buf)
+            buf = ' '
         end do
 
         exec_callback = 0
@@ -50,9 +45,6 @@ contains
         type(c_ptr),             intent(in), value :: tbl_name
         integer(kind=c_int64_t), intent(in), value :: rowid
         character(len=:), allocatable              :: db_str, tbl_str
-
-        allocate (character(len=c_strlen(db_name)) :: db_str)
-        allocate (character(len=c_strlen(tbl_name)) :: tbl_str)
 
         call c_f_str_ptr(db_name, db_str)
         call c_f_str_ptr(tbl_name, tbl_str)
