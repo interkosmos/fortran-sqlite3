@@ -550,7 +550,7 @@ contains
         type(c_ptr)                   :: ptr
         character(len=:), allocatable :: sqlite3_sourceid
 
-        ptr = sqlite3_libversion_()
+        ptr = sqlite3_sourceid_()
         if (.not. c_associated(ptr)) return
         call c_f_str_ptr(ptr, sqlite3_sourceid)
     end function sqlite3_sourceid
