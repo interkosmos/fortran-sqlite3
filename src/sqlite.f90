@@ -299,9 +299,9 @@ module sqlite
         ! int sqlite3_open(const char *filename, sqlite3 **db)
         function sqlite3_open_(filename, db) bind(c, name='sqlite3_open')
             import :: c_char, c_int, c_ptr
-            character(kind=c_char), intent(in) :: filename
-            type(c_ptr),            intent(in) :: db
-            integer(kind=c_int)                :: sqlite3_open_
+            character(kind=c_char), intent(in)    :: filename
+            type(c_ptr),            intent(inout) :: db
+            integer(kind=c_int)                   :: sqlite3_open_
         end function sqlite3_open_
 
         ! int sqlite3_prepare(sqlite3 *db, const char *sql, int nbyte, sqlite3_stmt **stmt, const char **tail)
@@ -310,7 +310,7 @@ module sqlite
             type(c_ptr),            intent(in), value :: db
             character(kind=c_char), intent(in)        :: sql
             integer(kind=c_int),    intent(in), value :: nbyte
-            type(c_ptr),            intent(in)        :: stmt
+            type(c_ptr),            intent(inout)     :: stmt
             type(c_ptr),            intent(in)        :: tail
             integer(kind=c_int)                       :: sqlite3_prepare_
         end function sqlite3_prepare_
