@@ -93,12 +93,12 @@ program test_sqlite
                           "id     INTEGER PRIMARY KEY AUTOINCREMENT," // &
                           "string VARCHAR(32)," // &
                           "value  INTEGER)", &
-                      c_null_ptr, c_null_ptr, errmsg)
+                      c_null_funptr, c_null_ptr, errmsg)
     if (rc /= SQLITE_OK) print '("sqlite3_exec(): ", a)', errmsg
 
     ! Insert values.
     rc = sqlite3_exec(db, "INSERT INTO " // DB_TABLE // "(string, value) VALUES('one', 12345)", &
-                      c_null_ptr, c_null_ptr, errmsg)
+                      c_null_funptr, c_null_ptr, errmsg)
     if (rc /= SQLITE_OK) print '("sqlite3_exec(): ", a)', errmsg
 
     ! Prepare statement.
