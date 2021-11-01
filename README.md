@@ -141,6 +141,15 @@ $ ./example
            1         one       12345
 ```
 
+## fpm
+You can add *fortran-sqlite3* as an [fpm](https://github.com/fortran-lang/fpm)
+dependency:
+
+```toml
+[dependencies]
+fortran-sqlite3 = { git = "https://github.com/interkosmos/fortran-sqlite3.git" }
+```
+
 ## Compatibility
 Note that the wrapper function `sqlite3_bind_text()` selects destructor type
 `SQLITE_TRANSIENT` if argument `destructor` is not passed, in contrast to the
