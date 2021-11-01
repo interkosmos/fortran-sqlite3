@@ -62,6 +62,10 @@ contains
                 print '("Row ", i0, " in table ", a, " of database ", a, " has been deleted!")', &
                     rowid, tbl_str, db_str
         end select
+        
+        if (allocated(db_str)) deallocate(db_str)
+        if (allocated(db_str)) deallocate(tbl_str)
+        
     end subroutine update_callback
 end module callbacks
 
@@ -73,13 +77,18 @@ program test_sqlite
     character(len=*), parameter :: DB_TABLE = 'test_table'
 
     character(len=:), allocatable :: errmsg ! Error message.
+    character(len=:), allocatable :: buf    ! buffer.
     integer                       :: rc     ! Return code.
     type(c_ptr)                   :: db     ! SQLite database.
     type(c_ptr)                   :: stmt   ! SQLite statement.
     type(c_ptr)                   :: udp    ! User-data pointer.
 
-    print '("SQLite library version: ", a)', sqlite3_libversion()
-    print '("SQLite source ID: ", a)', sqlite3_sourceid()
+    buf = sqlite3_libversion()
+    print '("SQLite library version: ", a)', buf
+    deallocate(buf)
+    buf =  sqlite3_sourceid()
+    print '("SQLite source ID: ", a)', buf
+    deallocate(buf)
 
     ! Open SQLite database.
     rc = sqlite3_open(DB_FILE, db)
@@ -94,12 +103,12 @@ program test_sqlite
                           "string VARCHAR(32)," // &
                           "value  INTEGER)", &
                       c_null_funptr, c_null_ptr, errmsg)
-    if (rc /= SQLITE_OK) print '("sqlite3_exec(): ", a)', errmsg
+    call print_error(rc, "sqlite3_exec", errmsg) 
 
     ! Insert values.
     rc = sqlite3_exec(db, "INSERT INTO " // DB_TABLE // "(string, value) VALUES('one', 12345)", &
                       c_null_funptr, c_null_ptr, errmsg)
-    if (rc /= SQLITE_OK) print '("sqlite3_exec(): ", a)', errmsg
+    call print_error(rc, "sqlite3_exec", errmsg) 
 
     ! Prepare statement.
     rc = sqlite3_prepare(db, "INSERT INTO " // DB_TABLE // "(string, value) VALUES(?, ?)", stmt)
@@ -146,17 +155,28 @@ program test_sqlite
     print '(/, a)', '--- TESTING CALLBACK FUNCTION'
     rc = sqlite3_exec(db, "SELECT * FROM " // DB_TABLE, &
                       c_funloc(exec_callback), c_null_ptr, errmsg)
-    if (rc /= SQLITE_OK) print '("sqlite3_exec(): ", a)', errmsg
+    call print_error(rc, "sqlite3_exec", errmsg) 
 
     ! Close SQLite handle.
     rc = sqlite3_close(db)
     if (rc /= SQLITE_OK) stop 'sqlite3_close(): failed'
 contains
+    subroutine print_error(rc, func, errmsg)
+      integer,     intent(in)        :: rc
+      character(len=*), intent(in)  :: func
+      character(len=:), allocatable,     intent(inout)  :: errmsg
+      
+      if (rc /= SQLITE_OK) print '(a, "(): ", a)', trim(func), errmsg
+      if (allocated(errmsg)) deallocate(errmsg)
+    end subroutine print_error
+      
+      
     subroutine print_values(stmt, ncols)
-        type(c_ptr), intent(inout) :: stmt
-        integer,     intent(in)    :: ncols
-        integer                    :: col_type
-        integer                    :: i
+        type(c_ptr), intent(inout)     :: stmt
+        integer,     intent(in)        :: ncols
+        integer                        :: col_type
+        integer                        :: i
+        character(len=:), allocatable  :: buf
 
         do i = 0, ncols - 1
             col_type = sqlite3_column_type(stmt, i)
@@ -169,7 +189,11 @@ contains
                     write (*, '(f0.8)', advance='no') sqlite3_column_double(stmt, i)
 
                 case (SQLITE_TEXT)
-                    write (*, '(a12)', advance='no') sqlite3_column_text(stmt, i)
+                    buf = sqlite3_column_text(stmt, i)
+                    if (allocated(buf)) then
+                      write (*, '(a12)', advance='no') buf
+                      deallocate(buf)
+                    end if
 
                 case default
                     write (*, '(" unsupported")', advance='no')
