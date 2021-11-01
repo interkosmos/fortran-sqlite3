@@ -471,7 +471,7 @@ contains
 
         if (.not. c_associated(c_str)) return
         sz = c_strlen(c_str)
-        if (sz <= 0) return
+        if (sz < 0) return
         call c_f_pointer(c_str, ptrs, [ sz ])
         allocate (character(len=sz) :: f_str)
         f_str = copy(ptrs)
