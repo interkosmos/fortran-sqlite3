@@ -47,7 +47,7 @@ The following SQL schema will be created by the example:
 
 ```sql
 CREATE TABLE example_table (
-    id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    id     INTEGER PRIMARY KEY,
     string VARCHAR(32),
     value  INTEGER
 );
@@ -71,7 +71,7 @@ program example
 
     ! Create table.
     rc = sqlite3_exec(db, "CREATE TABLE example_table (" // &
-                          "id     INTEGER PRIMARY KEY AUTOINCREMENT," // &
+                          "id     INTEGER PRIMARY KEY," // &
                           "string VARCHAR(32)," // &
                           "value  INTEGER)", c_null_ptr, c_null_ptr, errmsg)
     if (rc /= SQLITE_OK) print '("sqlite3_exec(): ", a)', errmsg
