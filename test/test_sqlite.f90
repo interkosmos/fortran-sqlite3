@@ -91,6 +91,23 @@ program test_sqlite
     ! Register update hook.
     udp = sqlite3_update_hook(db, c_funloc(update_callback), c_null_ptr)
 
+    ! Query SQLite version.
+    rc = sqlite3_prepare(db, "SELECT SQLITE_VERSION()", stmt)
+    if (rc /= SQLITE_OK) print '("sqlite3_prepare(): failed")'
+
+    if (rc /= SQLITE_OK) then
+        print '("Failed to fetch data: ", a)', sqlite3_errmsg(db)
+    else
+        rc = sqlite3_step(stmt)
+
+        if (rc == SQLITE_ROW) then
+            print '("SQLite version from query: ", a)', sqlite3_column_text(stmt, 0)
+        end if
+    end if
+
+    rc = sqlite3_finalize(stmt)
+    if (rc /= SQLITE_OK) print '("sqlite3_finalize(): failed")'
+
     ! Create table.
     rc = sqlite3_exec(db, "CREATE TABLE " // DB_TABLE // " (" // &
                           "id     INTEGER PRIMARY KEY," // &

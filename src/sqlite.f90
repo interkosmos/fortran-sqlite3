@@ -124,6 +124,8 @@ module sqlite
     public :: sqlite3_column_type
     public :: sqlite3_data_count
     public :: sqlite3_db_status
+    public :: sqlite3_errmsg
+    public :: sqlite3_errmsg_
     public :: sqlite3_exec
     public :: sqlite3_exec_
     public :: sqlite3_finalize
@@ -154,6 +156,8 @@ module sqlite
 
     public :: c_f_str_ptr
     public :: c_strlen
+
+    private :: copy
 
     interface
         ! int sqlite3_bind_double(sqlite3_stmt *stmt, int idx, double val)
@@ -259,7 +263,14 @@ module sqlite
             integer(kind=c_int)                    :: sqlite3_db_status
         end function sqlite3_db_status
 
-        ! int sqlite3_exec(sqlite3* db, const char *sql, int (*callback)(void *, int, char **, char **), void *client_data, char **errmsg)
+        ! const char *sqlite3_errmsg(sqlite3 *db)
+        function sqlite3_errmsg_(db) bind(c, name='sqlite3_errmsg')
+            import :: c_ptr
+            type(c_ptr), intent(in), value :: db
+            type(c_ptr)                    :: sqlite3_errmsg_
+        end function sqlite3_errmsg_
+
+        ! int sqlite3_exec(sqlite3 *db, const char *sql, int (*callback)(void *, int, char **, char **), void *client_data, char **errmsg)
         function sqlite3_exec_(db, sql, callback, client_data, errmsg) bind(c, name='sqlite3_exec')
             import :: c_char, c_funptr, c_int, c_ptr
             type(c_ptr),            intent(in), value :: db
@@ -277,7 +288,7 @@ module sqlite
             integer(kind=c_int)            :: sqlite3_finalize
         end function sqlite3_finalize
 
-        ! sqlite3_int64 sqlite3_last_insert_rowid(sqlite3* db)
+        ! sqlite3_int64 sqlite3_last_insert_rowid(sqlite3 *db)
         function sqlite3_last_insert_rowid(db) bind(c, name='sqlite3_last_insert_rowid')
             import :: c_int64_t, c_ptr
             type(c_ptr), intent(in), value :: db
@@ -504,6 +515,18 @@ contains
         if (.not. c_associated(ptr)) return
         call c_f_str_ptr(ptr, sqlite3_column_text)
     end function sqlite3_column_text
+
+    function sqlite3_errmsg(db)
+        type(c_ptr), intent(in)       :: db
+        character(len=:), allocatable :: sqlite3_errmsg
+        type(c_ptr)                   :: ptr
+
+        ptr = sqlite3_errmsg_(db)
+
+        if (c_associated(ptr)) then
+            call c_f_str_ptr(ptr, sqlite3_errmsg)
+        end if
+    end function sqlite3_errmsg
 
     function sqlite3_exec(db, sql, callback, client_data, errmsg)
         type(c_ptr),                   intent(in)            :: db
