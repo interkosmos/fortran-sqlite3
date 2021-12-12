@@ -154,11 +154,8 @@ fortran-sqlite3 = { git = "https://github.com/interkosmos/fortran-sqlite3.git" }
 Note that the wrapper function `sqlite3_bind_text()` selects destructor type
 `SQLITE_TRANSIENT` if argument `destructor` is not passed, in contrast to the
 SQLite default `SQLITE_STATIC`. Therefore, SQLite will make a copy of the given
-value. Otherwise, the passed variable would go out of scope before SQLite could
-read the string completely, leading to possible data corruption.
-
-It is recommended to call the interface `sqlite3_bind_text_()` (trailing
-underscore) directly, if `SQLITE_STATIC` is preferred.
+value. Otherwise, the passed variable could go out of scope before SQLite was
+able to read the string completely, leading to possible data corruption.
 
 ## Licence
 ISC

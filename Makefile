@@ -13,9 +13,10 @@ ARFLAGS = rcs
 TARGET  = libfortran-sqlite3.a
 TEST    = test_sqlite
 
-.PHONY: all clean
+.PHONY: all clean test
 
-all: $(TARGET) $(TEST)
+all: $(TARGET)
+test: $(TEST)
 
 $(TARGET):
 	$(FC) $(FFLAGS) -c src/sqlite.f90

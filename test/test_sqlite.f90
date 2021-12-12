@@ -122,8 +122,8 @@ program test_sqlite
     call print_error(rc, 'sqlite3_exec', errmsg)
 
     ! Prepare statement.
-    rc = sqlite3_prepare(db, "INSERT INTO " // DB_TABLE // "(string, value) VALUES(?, ?)", stmt)
-    if (rc /= SQLITE_OK) print '("sqlite3_prepare(): failed")'
+    rc = sqlite3_prepare_v2(db, "INSERT INTO " // DB_TABLE // "(string, value) VALUES(?, ?)", stmt)
+    if (rc /= SQLITE_OK) print '("sqlite3_prepare_v2(): failed")'
 
     ! Bind values.
     rc = sqlite3_bind_text(stmt, 1, 'two')
@@ -152,8 +152,8 @@ program test_sqlite
 
     ! Read values.
     print '(/, "--- TESTING PREPARE/STEP")'
-    rc = sqlite3_prepare(db, "SELECT * FROM " // DB_TABLE, stmt)
-    if (rc /= SQLITE_OK) print '("sqlite3_prepare(): failed")'
+    rc = sqlite3_prepare_v2(db, "SELECT * FROM " // DB_TABLE, stmt)
+    if (rc /= SQLITE_OK) print '("sqlite3_prepare_v2(): failed")'
 
     do while (sqlite3_step(stmt) /= SQLITE_DONE)
         call print_values(stmt, 3)
