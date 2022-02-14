@@ -124,6 +124,7 @@ module sqlite
     public :: sqlite3_column_type
     public :: sqlite3_data_count
     public :: sqlite3_db_status
+    public :: sqlite3_errcode
     public :: sqlite3_errmsg
     public :: sqlite3_errmsg_
     public :: sqlite3_exec
@@ -276,6 +277,14 @@ module sqlite
             integer(kind=c_int), intent(in), value :: reset_flag
             integer(kind=c_int)                    :: sqlite3_db_status
         end function sqlite3_db_status
+
+        ! int sqlite3_errcode(sqlite3 *db)
+        function sqlite3_errcode(db) bind(c, name='sqlite3_errcode')
+            import :: c_int, c_ptr
+            implicit none
+            type(c_ptr), intent(in), value :: db
+            integer(kind=c_int)            :: sqlite3_errcode
+        end function sqlite3_errcode
 
         ! const char *sqlite3_errmsg(sqlite3 *db)
         function sqlite3_errmsg_(db) bind(c, name='sqlite3_errmsg')
