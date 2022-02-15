@@ -116,6 +116,7 @@ module sqlite
     public :: sqlite3_bind_int64
     public :: sqlite3_bind_text
     public :: sqlite3_bind_text_
+    public :: sqlite3_clear_bindings
     public :: sqlite3_close
     public :: sqlite3_column_double
     public :: sqlite3_column_int
@@ -205,7 +206,15 @@ module sqlite
             integer(kind=c_int)                       :: sqlite3_bind_text_
         end function sqlite3_bind_text_
 
-        ! int sqlite3_close(sqlite3*)
+        ! int sqlite3_clear_bindings(sqlite3_stmt *stmt)
+        function sqlite3_clear_bindings(stmt) bind(c, name='sqlite3_clear_bindings')
+            import :: c_int, c_ptr
+            implicit none
+            type(c_ptr), intent(in), value :: stmt
+            integer(kind=c_int)            :: sqlite3_clear_bindings
+        end function sqlite3_clear_bindings
+
+        ! int sqlite3_close(sqlite3 *db)
         function sqlite3_close(db) bind(c, name='sqlite3_close')
             import :: c_int, c_ptr
             implicit none
