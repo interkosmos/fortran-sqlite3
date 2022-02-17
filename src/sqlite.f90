@@ -216,6 +216,7 @@ module sqlite
     public :: sqlite3_libversion
     public :: sqlite3_libversion_
     public :: sqlite3_libversion_number
+    public :: sqlite3_log
     public :: sqlite3_open
     public :: sqlite3_open_
     public :: sqlite3_prepare
@@ -605,6 +606,14 @@ module sqlite
             implicit none
             type(c_ptr), intent(in), value :: ptr
         end subroutine sqlite3_free
+
+        ! void sqlite3_log(int iErrCode, const char *zFormat, ...)
+        subroutine sqlite3_log(ierr_code, zformat) bind(c, name='sqlite3_log')
+            import :: c_char, c_int
+            implicit none
+            integer(kind=c_int),    intent(in), value :: ierr_code
+            character(kind=c_char), intent(in)        :: zformat
+        end subroutine sqlite3_log
 
         ! void sqlite3_str_append(sqlite3_str *str, const char *zIn, int N)
         subroutine sqlite3_str_append(str, zin, n) bind(c, name='slqite3_str_append')

@@ -88,6 +88,7 @@ program test_sqlite
     use, intrinsic :: iso_c_binding
     use :: sqlite
     use :: callbacks
+    implicit none (type, external)
     character(len=*), parameter :: DB_FILE  = 'test.db'
     character(len=*), parameter :: DB_TABLE = 'test_table'
 
@@ -110,6 +111,9 @@ program test_sqlite
     ! Open SQLite database.
     rc = sqlite3_open(DB_FILE, db)
     if (rc /= SQLITE_OK) stop 'sqlite3_open(): failed'
+
+    ! Testing logging.
+    call sqlite3_log(1, 'TEST LOG' // c_null_char)
 
     ! Enable WAL mode.
     print '("Turning WAL mode on ...")'
