@@ -108,6 +108,36 @@ module sqlite
     integer, parameter, public :: SQLITE_DBSTATUS_CACHE_SPILL         = 12
     integer, parameter, public :: SQLITE_DBSTATUS_MAX                 = 12 ! Largest defined DBSTATUS.
 
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_SINGLETHREAD        =  1  ! nil
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_MULTITHREAD         =  2  ! nil
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_SERIALIZED          =  3  ! nil
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_MALLOC              =  4  ! sqlite3_mem_methods*
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_GETMALLOC           =  5  ! sqlite3_mem_methods*
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_SCRATCH             =  6  ! No longer used
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_PAGECACHE           =  7  ! void*, int sz, int N
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_HEAP                =  8  ! void*, int nByte, int min
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_MEMSTATUS           =  9  ! boolean
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_MUTEX               = 10  ! sqlite3_mutex_methods*
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_GETMUTEX            = 11  ! sqlite3_mutex_methods*
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_CHUNKALLOC          = 12  ! unused
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_LOOKASIDE           = 13  ! int int
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_PCACHE              = 14  ! no-op
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_GETPCACHE           = 15  ! no-op
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_LOG                 = 16  ! xFunc, void*
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_URI                 = 17  ! int
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_PCACHE2             = 18  ! sqlite3_pcache_methods2*
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_GETPCACHE2          = 19  ! sqlite3_pcache_methods2*
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_COVERING_INDEX_SCAN = 20  ! int
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_SQLLOG              = 21  ! xSqllog, void*
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_MMAP_SIZE           = 22  ! sqlite3_int64, sqlite3_int64
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_WIN32_HEAPSIZE      = 23  ! int nByte
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_PCACHE_HDRSZ        = 24  ! int *psz
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_PMASZ               = 25  ! unsigned int szPma
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_STMTJRNL_SPILL      = 26  ! int nByte
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_SMALL_MALLOC        = 27  ! boolean
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_SORTERREF_SIZE      = 28  ! int nByte
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_MEMDB_MAXSIZE       = 29  ! sqlite3_int64
+
     integer(kind=c_size_t), parameter, public :: SQLITE_STATIC    = 0
     integer(kind=c_size_t), parameter, public :: SQLITE_TRANSIENT = -1
 
@@ -123,6 +153,10 @@ module sqlite
     public :: sqlite3_column_int64
     public :: sqlite3_column_text
     public :: sqlite3_column_type
+    public :: sqlite3_config
+    public :: sqlite3_config_funptr_ptr_
+    public :: sqlite3_config_int_
+    public :: sqlite3_config_null_
     public :: sqlite3_data_count
     public :: sqlite3_db_status
     public :: sqlite3_errcode
@@ -132,6 +166,7 @@ module sqlite
     public :: sqlite3_exec_
     public :: sqlite3_finalize
     public :: sqlite3_free
+    public :: sqlite3_initialize
     public :: sqlite3_last_insert_rowid
     public :: sqlite3_libversion
     public :: sqlite3_libversion_
@@ -143,6 +178,7 @@ module sqlite
     public :: sqlite3_prepare_v2
     public :: sqlite3_prepare_v2_
     public :: sqlite3_reset
+    public :: sqlite3_shutdown
     public :: sqlite3_sleep
     public :: sqlite3_sourceid
     public :: sqlite3_sourceid_
@@ -267,6 +303,33 @@ module sqlite
             integer(kind=c_int)                    :: sqlite3_column_type
         end function sqlite3_column_type
 
+        ! int sqlite3_config(int option, ...)
+        function sqlite3_config_funptr_ptr_(option, funptr, ptr) bind(c, name='sqlite3_config')
+            import :: c_funptr, c_int, c_ptr
+            implicit none
+            integer(kind=c_int), intent(in), value :: option
+            type(c_funptr),      intent(in), value :: funptr
+            type(c_ptr),         intent(in), value :: ptr
+            integer(kind=c_int)                    :: sqlite3_config_funptr_ptr_
+        end function sqlite3_config_funptr_ptr_
+
+        ! int sqlite3_config(int option, ...)
+        function sqlite3_config_int_(option, arg) bind(c, name='sqlite3_config')
+            import :: c_int
+            implicit none
+            integer(kind=c_int), intent(in), value :: option
+            integer(kind=c_int), intent(in), value :: arg
+            integer(kind=c_int)                    :: sqlite3_config_int_
+        end function sqlite3_config_int_
+
+        ! int sqlite3_config(int option, ...)
+        function sqlite3_config_null_(option) bind(c, name='sqlite3_config')
+            import :: c_int
+            implicit none
+            integer(kind=c_int), intent(in), value :: option
+            integer(kind=c_int)                    :: sqlite3_config_null_
+        end function sqlite3_config_null_
+
         ! int sqlite3_data_count(sqlite3_stmt *stmt)
         function sqlite3_data_count(stmt) bind(c, name='sqlite3_data_count')
             import :: c_int, c_ptr
@@ -322,6 +385,13 @@ module sqlite
             type(c_ptr), intent(in), value :: stmt
             integer(kind=c_int)            :: sqlite3_finalize
         end function sqlite3_finalize
+
+        ! int sqlite3_initialize(void)
+        function sqlite3_initialize() bind(c, name='sqlite3_initialize')
+            import :: c_int
+            implicit none
+            integer(kind=c_int) :: sqlite3_initialize
+        end function sqlite3_initialize
 
         ! sqlite3_int64 sqlite3_last_insert_rowid(sqlite3 *db)
         function sqlite3_last_insert_rowid(db) bind(c, name='sqlite3_last_insert_rowid')
@@ -385,6 +455,13 @@ module sqlite
             type(c_ptr), intent(in), value :: stmt
             integer(kind=c_int)            :: sqlite3_reset
         end function sqlite3_reset
+
+        ! int sqlite3_shutdown(void)
+        function sqlite3_shutdown() bind(c, name='sqlite3_shutdown')
+            import :: c_int
+            implicit none
+            integer(kind=c_int) :: sqlite3_shutdown
+        end function sqlite3_shutdown
 
         ! int sqlite3_sleep(int t)
         function sqlite3_sleep(t) bind(c, name='sqlite3_sleep')
@@ -531,6 +608,12 @@ module sqlite
             integer(c_size_t)              :: c_strlen
         end function c_strlen
     end interface
+
+    interface sqlite3_config
+        module procedure :: sqlite3_config_funptr_ptr
+        module procedure :: sqlite3_config_int
+        module procedure :: sqlite3_config_null
+    end interface
 contains
     pure function copy(a)
         character, intent(in)  :: a(:)
@@ -583,6 +666,30 @@ contains
         if (.not. c_associated(ptr)) return
         call c_f_str_ptr(ptr, sqlite3_column_text)
     end function sqlite3_column_text
+
+    function sqlite3_config_int(option, arg)
+        integer, intent(in) :: option
+        integer, intent(in) :: arg
+        integer             :: sqlite3_config_int
+
+        sqlite3_config_int = sqlite3_config_int_(option, arg)
+    end function sqlite3_config_int
+
+    function sqlite3_config_funptr_ptr(option, funptr, ptr)
+        integer,        intent(in) :: option
+        type(c_funptr), intent(in) :: funptr
+        type(c_ptr),    intent(in) :: ptr
+        integer                    :: sqlite3_config_funptr_ptr
+
+        sqlite3_config_funptr_ptr = sqlite3_config_funptr_ptr_(option, funptr, ptr)
+    end function sqlite3_config_funptr_ptr
+
+    function sqlite3_config_null(option)
+        integer, intent(in) :: option
+        integer             :: sqlite3_config_null
+
+        sqlite3_config_null = sqlite3_config_null_(option)
+    end function sqlite3_config_null
 
     function sqlite3_errmsg(db)
         type(c_ptr), intent(in)       :: db

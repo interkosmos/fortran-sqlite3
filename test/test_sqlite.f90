@@ -5,6 +5,7 @@ module callbacks
     implicit none
     private
 
+    public :: error_log_callback
     public :: exec_callback
     public :: update_callback
 contains
@@ -33,6 +34,20 @@ contains
 
         exec_callback = 0
     end function exec_callback
+
+    ! void error_log_callback(void *udp, int err_code, const char *err_msg)
+    subroutine error_log_callback(udp, err_code, err_msg) bind(c)
+        type(c_ptr),         intent(in), value :: udp
+        integer(kind=c_int), intent(in), value :: err_code
+        type(c_ptr),         intent(in), value :: err_msg
+        character(len=:), allocatable          :: msg
+
+        call c_f_str_ptr(err_msg, msg)
+        print '(a)', repeat('-', 64)
+        print '("ERROR ", i0, ": ", a)', err_code, msg
+        print '(a)', repeat('-', 64)
+        if (allocated(msg)) deallocate (msg)
+    end subroutine error_log_callback
 
     ! void update_callback(void* udp, int type, const char *db_name, const char *tbl_name, sqlite3_int64 rowid)
     subroutine update_callback(udp, type, db_name, tbl_name, rowid) bind(c)
@@ -81,12 +96,24 @@ program test_sqlite
     type(c_ptr)                   :: stmt   ! SQLite statement.
     type(c_ptr)                   :: udp    ! User-data pointer.
 
+    ! Set configuration to single thread.
+    rc = sqlite3_config(SQLITE_CONFIG_SINGLETHREAD)
+    if (rc /= SQLITE_OK) stop 'sqlite3_config(): failed'
+
+    rc = sqlite3_config(SQLITE_CONFIG_LOG, c_funloc(error_log_callback), c_null_ptr)
+    if (rc /= SQLITE_OK) stop 'sqlite3_config(): failed'
+
     print '("SQLite library version: ", a)', sqlite3_libversion()
     print '("SQLite source ID: ", a)', sqlite3_sourceid()
 
     ! Open SQLite database.
     rc = sqlite3_open(DB_FILE, db)
     if (rc /= SQLITE_OK) stop 'sqlite3_open(): failed'
+
+    ! Enable WAL mode.
+    print '("Turning WAL mode on ...")'
+    rc = journal_mode_wal(db)
+    if (rc /= SQLITE_OK) print '("Unable to set WAL mode")'
 
     ! Register update hook.
     udp = sqlite3_update_hook(db, c_funloc(update_callback), c_null_ptr)
@@ -172,6 +199,32 @@ program test_sqlite
     rc = sqlite3_close(db)
     if (rc /= SQLITE_OK) stop 'sqlite3_close(): failed'
 contains
+    integer function journal_mode_wal(db) result(rc)
+        !! Enables WAL mode.
+        type(c_ptr), intent(inout)         :: db
+        character(len=:), allocatable      :: buf
+        integer                            :: err
+        type(c_ptr)                        :: stmt
+
+        rc = -1
+
+        sql_block: block
+            err = sqlite3_prepare_v2(db, "PRAGMA journal_mode=WAL", stmt)
+            if (err /= SQLITE_OK) exit sql_block
+
+            err = sqlite3_step(stmt)
+            if (err /= SQLITE_ROW) exit sql_block
+
+            buf = sqlite3_column_text(stmt, 0)
+            if (.not. allocated(buf)) exit sql_block
+            if (buf /= 'wal') exit sql_block
+
+            rc = 0
+        end block sql_block
+
+        err = sqlite3_finalize(stmt)
+    end function journal_mode_wal
+
     subroutine print_error(rc, func, errmsg)
       integer,                       intent(in)    :: rc
       character(len=*),              intent(in)    :: func
@@ -206,7 +259,7 @@ contains
                     end if
 
                 case default
-                    write (*, '(" unsupported")', advance='no')
+                    write (*, '(" not implemented")', advance='no')
             end select
         end do
 
