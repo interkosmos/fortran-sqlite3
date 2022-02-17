@@ -4,8 +4,53 @@
 !
 ! Author:  Philipp Engel
 ! Licence: ISC
+module sqlite_util
+    use, intrinsic :: iso_c_binding
+    implicit none (type, external)
+    private
+
+    public :: c_f_str_ptr
+    public :: c_strlen
+
+    private :: copy
+
+    interface
+        function c_strlen(str) bind(c, name='strlen')
+            import :: c_ptr, c_size_t
+            implicit none
+            type(c_ptr), intent(in), value :: str
+            integer(c_size_t)              :: c_strlen
+        end function c_strlen
+    end interface
+contains
+    pure function copy(a)
+        character, intent(in)  :: a(:)
+        character(len=size(a)) :: copy
+        integer(kind=8)        :: i
+
+        do i = 1, size(a)
+            copy(i:i) = a(i)
+        end do
+    end function copy
+
+    subroutine c_f_str_ptr(c_str, f_str)
+        type(c_ptr),                   intent(in)  :: c_str
+        character(len=:), allocatable, intent(out) :: f_str
+        character(kind=c_char), pointer            :: ptrs(:)
+        integer(kind=8)                            :: sz
+
+        if (.not. c_associated(c_str)) return
+        sz = c_strlen(c_str)
+        if (sz < 0) return
+        call c_f_pointer(c_str, ptrs, [ sz ])
+        allocate (character(len=sz) :: f_str)
+        f_str = copy(ptrs)
+    end subroutine c_f_str_ptr
+end module sqlite_util
+
 module sqlite
     use, intrinsic :: iso_c_binding
+    use :: sqlite_util
     implicit none (type, external)
     private
 
@@ -108,35 +153,35 @@ module sqlite
     integer, parameter, public :: SQLITE_DBSTATUS_CACHE_SPILL         = 12
     integer, parameter, public :: SQLITE_DBSTATUS_MAX                 = 12 ! Largest defined DBSTATUS.
 
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_SINGLETHREAD        =  1  ! nil
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_MULTITHREAD         =  2  ! nil
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_SERIALIZED          =  3  ! nil
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_MALLOC              =  4  ! sqlite3_mem_methods*
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_GETMALLOC           =  5  ! sqlite3_mem_methods*
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_SCRATCH             =  6  ! No longer used
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_PAGECACHE           =  7  ! void*, int sz, int N
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_HEAP                =  8  ! void*, int nByte, int min
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_MEMSTATUS           =  9  ! boolean
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_MUTEX               = 10  ! sqlite3_mutex_methods*
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_GETMUTEX            = 11  ! sqlite3_mutex_methods*
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_CHUNKALLOC          = 12  ! unused
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_LOOKASIDE           = 13  ! int int
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_PCACHE              = 14  ! no-op
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_GETPCACHE           = 15  ! no-op
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_LOG                 = 16  ! xFunc, void*
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_URI                 = 17  ! int
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_PCACHE2             = 18  ! sqlite3_pcache_methods2*
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_GETPCACHE2          = 19  ! sqlite3_pcache_methods2*
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_COVERING_INDEX_SCAN = 20  ! int
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_SQLLOG              = 21  ! xSqllog, void*
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_MMAP_SIZE           = 22  ! sqlite3_int64, sqlite3_int64
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_WIN32_HEAPSIZE      = 23  ! int nByte
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_PCACHE_HDRSZ        = 24  ! int *psz
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_PMASZ               = 25  ! unsigned int szPma
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_STMTJRNL_SPILL      = 26  ! int nByte
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_SMALL_MALLOC        = 27  ! boolean
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_SORTERREF_SIZE      = 28  ! int nByte
-    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_MEMDB_MAXSIZE       = 29  ! sqlite3_int64
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_SINGLETHREAD        =  1 ! nil
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_MULTITHREAD         =  2 ! nil
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_SERIALIZED          =  3 ! nil
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_MALLOC              =  4 ! sqlite3_mem_methods*
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_GETMALLOC           =  5 ! sqlite3_mem_methods*
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_SCRATCH             =  6 ! No longer used
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_PAGECACHE           =  7 ! void*, int sz, int N
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_HEAP                =  8 ! void*, int nByte, int min
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_MEMSTATUS           =  9 ! boolean
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_MUTEX               = 10 ! sqlite3_mutex_methods*
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_GETMUTEX            = 11 ! sqlite3_mutex_methods*
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_CHUNKALLOC          = 12 ! unused
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_LOOKASIDE           = 13 ! int int
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_PCACHE              = 14 ! no-op
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_GETPCACHE           = 15 ! no-op
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_LOG                 = 16 ! xFunc, void*
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_URI                 = 17 ! int
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_PCACHE2             = 18 ! sqlite3_pcache_methods2*
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_GETPCACHE2          = 19 ! sqlite3_pcache_methods2*
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_COVERING_INDEX_SCAN = 20 ! int
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_SQLLOG              = 21 ! xSqllog, void*
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_MMAP_SIZE           = 22 ! sqlite3_int64, sqlite3_int64
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_WIN32_HEAPSIZE      = 23 ! int nByte
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_PCACHE_HDRSZ        = 24 ! int *psz
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_PMASZ               = 25 ! unsigned int szPma
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_STMTJRNL_SPILL      = 26 ! int nByte
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_SMALL_MALLOC        = 27 ! boolean
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_SORTERREF_SIZE      = 28 ! int nByte
+    integer(kind=c_int), parameter, public :: SQLITE_CONFIG_MEMDB_MAXSIZE       = 29 ! sqlite3_int64
 
     integer(kind=c_size_t), parameter, public :: SQLITE_STATIC    = 0
     integer(kind=c_size_t), parameter, public :: SQLITE_TRANSIENT = -1
@@ -193,11 +238,6 @@ module sqlite
     public :: sqlite3_str_reset
     public :: sqlite3_str_value
     public :: sqlite3_update_hook
-
-    public :: c_f_str_ptr
-    public :: c_strlen
-
-    private :: copy
 
     interface
         ! int sqlite3_bind_double(sqlite3_stmt *stmt, int idx, double val)
@@ -600,45 +640,12 @@ module sqlite
         end subroutine sqlite3_str_reset
     end interface
 
-    interface
-        function c_strlen(str) bind(c, name='strlen')
-            import :: c_ptr, c_size_t
-            implicit none
-            type(c_ptr), intent(in), value :: str
-            integer(c_size_t)              :: c_strlen
-        end function c_strlen
-    end interface
-
     interface sqlite3_config
         module procedure :: sqlite3_config_funptr_ptr
         module procedure :: sqlite3_config_int
         module procedure :: sqlite3_config_null
     end interface
 contains
-    pure function copy(a)
-        character, intent(in)  :: a(:)
-        character(len=size(a)) :: copy
-        integer(kind=8)        :: i
-
-        do i = 1, size(a)
-            copy(i:i) = a(i)
-        end do
-    end function copy
-
-    subroutine c_f_str_ptr(c_str, f_str)
-        type(c_ptr),                   intent(in)  :: c_str
-        character(len=:), allocatable, intent(out) :: f_str
-        character(kind=c_char), pointer            :: ptrs(:)
-        integer(kind=8)                            :: sz
-
-        if (.not. c_associated(c_str)) return
-        sz = c_strlen(c_str)
-        if (sz < 0) return
-        call c_f_pointer(c_str, ptrs, [ sz ])
-        allocate (character(len=sz) :: f_str)
-        f_str = copy(ptrs)
-    end subroutine c_f_str_ptr
-
     function sqlite3_bind_text(stmt, idx, val, destructor)
         !! Binds text to column. This wrapper passes destructor
         !! `SQLITE_TRANSIENT` by default!

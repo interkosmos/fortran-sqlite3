@@ -2,6 +2,7 @@
 module callbacks
     use, intrinsic :: iso_c_binding
     use :: sqlite
+    use :: sqlite_util
     implicit none
     private
 

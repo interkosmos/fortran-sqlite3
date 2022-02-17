@@ -54,13 +54,18 @@ CREATE TABLE example_table (
 ```
 
 The program opens a database `example.db`, creates the table `example_table`,
-inserts some values, then reads them back in, and prints them to console:
+inserts some values, then reads them back in, and prints them to console.
+
+The (optional) module `sqlite_util` contains C interoperability
+functions/interfaces to convert C char pointer to Fortran allocatable
+character.
 
 ```fortran
 ! example.f90
 program example
     use, intrinsic :: iso_c_binding
     use :: sqlite
+    use :: sqlite_util
     character(len=:), allocatable :: errmsg
     integer                       :: rc
     type(c_ptr)                   :: db
