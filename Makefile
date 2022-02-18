@@ -19,8 +19,9 @@ all: $(TARGET)
 test: $(TEST)
 
 $(TARGET):
+	$(FC) $(FFLAGS) -c src/sqlite_util.f90
 	$(FC) $(FFLAGS) -c src/sqlite.f90
-	$(AR) $(ARFLAGS) $(TARGET) sqlite.o
+	$(AR) $(ARFLAGS) $(TARGET) sqlite_util.o sqlite.o
 
 $(TEST): $(TARGET)
 	$(FC) $(FFLAGS) $(LDFLAGS) -o test_sqlite test/test_sqlite.f90 $(TARGET) $(LDLIBS)

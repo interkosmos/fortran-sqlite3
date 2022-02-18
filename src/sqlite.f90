@@ -4,154 +4,110 @@
 !
 ! Author:  Philipp Engel
 ! Licence: ISC
-module sqlite_util
-    use, intrinsic :: iso_c_binding
-    implicit none (type, external)
-    private
-
-    public :: c_f_str_ptr
-    public :: c_strlen
-
-    private :: copy
-
-    interface
-        function c_strlen(str) bind(c, name='strlen')
-            import :: c_ptr, c_size_t
-            implicit none
-            type(c_ptr), intent(in), value :: str
-            integer(c_size_t)              :: c_strlen
-        end function c_strlen
-    end interface
-contains
-    pure function copy(a)
-        character, intent(in)  :: a(:)
-        character(len=size(a)) :: copy
-        integer(kind=8)        :: i
-
-        do i = 1, size(a)
-            copy(i:i) = a(i)
-        end do
-    end function copy
-
-    subroutine c_f_str_ptr(c_str, f_str)
-        type(c_ptr),                   intent(in)  :: c_str
-        character(len=:), allocatable, intent(out) :: f_str
-        character(kind=c_char), pointer            :: ptrs(:)
-        integer(kind=8)                            :: sz
-
-        if (.not. c_associated(c_str)) return
-        sz = c_strlen(c_str)
-        if (sz < 0) return
-        call c_f_pointer(c_str, ptrs, [ sz ])
-        allocate (character(len=sz) :: f_str)
-        f_str = copy(ptrs)
-    end subroutine c_f_str_ptr
-end module sqlite_util
-
 module sqlite
     use, intrinsic :: iso_c_binding
     use :: sqlite_util
     implicit none (type, external)
     private
 
-    integer, parameter, public :: SQLITE_INTEGER = 1
-    integer, parameter, public :: SQLITE_FLOAT   = 2
-    integer, parameter, public :: SQLITE_TEXT    = 3
-    integer, parameter, public :: SQLITE_BLOB    = 4
-    integer, parameter, public :: SQLITE_NULL    = 5
+    integer(kind=c_int), parameter, public :: SQLITE_INTEGER = 1
+    integer(kind=c_int), parameter, public :: SQLITE_FLOAT   = 2
+    integer(kind=c_int), parameter, public :: SQLITE_TEXT    = 3
+    integer(kind=c_int), parameter, public :: SQLITE_BLOB    = 4
+    integer(kind=c_int), parameter, public :: SQLITE_NULL    = 5
 
-    integer, parameter, public :: SQLITE_OK         = 0
-    integer, parameter, public :: SQLITE_ERROR      = 1
-    integer, parameter, public :: SQLITE_INTERNAL   = 2
-    integer, parameter, public :: SQLITE_PERM       = 3
-    integer, parameter, public :: SQLITE_ABORT      = 4
-    integer, parameter, public :: SQLITE_BUSY       = 5
-    integer, parameter, public :: SQLITE_LOCKED     = 6
-    integer, parameter, public :: SQLITE_NOMEM      = 7
-    integer, parameter, public :: SQLITE_READONLY   = 8
-    integer, parameter, public :: SQLITE_INTERRUPT  = 9
-    integer, parameter, public :: SQLITE_IOERR      = 10
-    integer, parameter, public :: SQLITE_CORRUPT    = 11
-    integer, parameter, public :: SQLITE_NOTFOUND   = 12
-    integer, parameter, public :: SQLITE_FULL       = 13
-    integer, parameter, public :: SQLITE_CANTOPEN   = 14
-    integer, parameter, public :: SQLITE_PROTOCOL   = 15
-    integer, parameter, public :: SQLITE_EMPTY      = 16
-    integer, parameter, public :: SQLITE_SCHEMA     = 17
-    integer, parameter, public :: SQLITE_TOOBIG     = 18
-    integer, parameter, public :: SQLITE_CONSTRAINT = 19
-    integer, parameter, public :: SQLITE_MISMATCH   = 20
-    integer, parameter, public :: SQLITE_MISUSE     = 21
-    integer, parameter, public :: SQLITE_NOLFS      = 22
-    integer, parameter, public :: SQLITE_AUTH       = 23
-    integer, parameter, public :: SQLITE_FORMAT     = 24
-    integer, parameter, public :: SQLITE_RANGE      = 25
-    integer, parameter, public :: SQLITE_NOTADB     = 26
-    integer, parameter, public :: SQLITE_NOTICE     = 27
-    integer, parameter, public :: SQLITE_WARNING    = 28
-    integer, parameter, public :: SQLITE_ROW        = 100
-    integer, parameter, public :: SQLITE_DONE       = 101
+    integer(kind=c_int), parameter, public :: SQLITE_OK         = 0
+    integer(kind=c_int), parameter, public :: SQLITE_ERROR      = 1
+    integer(kind=c_int), parameter, public :: SQLITE_INTERNAL   = 2
+    integer(kind=c_int), parameter, public :: SQLITE_PERM       = 3
+    integer(kind=c_int), parameter, public :: SQLITE_ABORT      = 4
+    integer(kind=c_int), parameter, public :: SQLITE_BUSY       = 5
+    integer(kind=c_int), parameter, public :: SQLITE_LOCKED     = 6
+    integer(kind=c_int), parameter, public :: SQLITE_NOMEM      = 7
+    integer(kind=c_int), parameter, public :: SQLITE_READONLY   = 8
+    integer(kind=c_int), parameter, public :: SQLITE_INTERRUPT  = 9
+    integer(kind=c_int), parameter, public :: SQLITE_IOERR      = 10
+    integer(kind=c_int), parameter, public :: SQLITE_CORRUPT    = 11
+    integer(kind=c_int), parameter, public :: SQLITE_NOTFOUND   = 12
+    integer(kind=c_int), parameter, public :: SQLITE_FULL       = 13
+    integer(kind=c_int), parameter, public :: SQLITE_CANTOPEN   = 14
+    integer(kind=c_int), parameter, public :: SQLITE_PROTOCOL   = 15
+    integer(kind=c_int), parameter, public :: SQLITE_EMPTY      = 16
+    integer(kind=c_int), parameter, public :: SQLITE_SCHEMA     = 17
+    integer(kind=c_int), parameter, public :: SQLITE_TOOBIG     = 18
+    integer(kind=c_int), parameter, public :: SQLITE_CONSTRAINT = 19
+    integer(kind=c_int), parameter, public :: SQLITE_MISMATCH   = 20
+    integer(kind=c_int), parameter, public :: SQLITE_MISUSE     = 21
+    integer(kind=c_int), parameter, public :: SQLITE_NOLFS      = 22
+    integer(kind=c_int), parameter, public :: SQLITE_AUTH       = 23
+    integer(kind=c_int), parameter, public :: SQLITE_FORMAT     = 24
+    integer(kind=c_int), parameter, public :: SQLITE_RANGE      = 25
+    integer(kind=c_int), parameter, public :: SQLITE_NOTADB     = 26
+    integer(kind=c_int), parameter, public :: SQLITE_NOTICE     = 27
+    integer(kind=c_int), parameter, public :: SQLITE_WARNING    = 28
+    integer(kind=c_int), parameter, public :: SQLITE_ROW        = 100
+    integer(kind=c_int), parameter, public :: SQLITE_DONE       = 101
 
-    integer, parameter, public :: SQLITE_CREATE_INDEX        = 1
-    integer, parameter, public :: SQLITE_CREATE_TABLE        = 2
-    integer, parameter, public :: SQLITE_CREATE_TEMP_INDEX   = 3
-    integer, parameter, public :: SQLITE_CREATE_TEMP_TABLE   = 4
-    integer, parameter, public :: SQLITE_CREATE_TEMP_TRIGGER = 5
-    integer, parameter, public :: SQLITE_CREATE_TEMP_VIEW    = 6
-    integer, parameter, public :: SQLITE_CREATE_TRIGGER      = 7
-    integer, parameter, public :: SQLITE_CREATE_VIEW         = 8
-    integer, parameter, public :: SQLITE_DELETE              = 9
-    integer, parameter, public :: SQLITE_DROP_INDEX          = 10
-    integer, parameter, public :: SQLITE_DROP_TABLE          = 11
-    integer, parameter, public :: SQLITE_DROP_TEMP_INDEX     = 12
-    integer, parameter, public :: SQLITE_DROP_TEMP_TABLE     = 13
-    integer, parameter, public :: SQLITE_DROP_TEMP_TRIGGER   = 14
-    integer, parameter, public :: SQLITE_DROP_TEMP_VIEW      = 15
-    integer, parameter, public :: SQLITE_DROP_TRIGGER        = 16
-    integer, parameter, public :: SQLITE_DROP_VIEW           = 17
-    integer, parameter, public :: SQLITE_INSERT              = 18
-    integer, parameter, public :: SQLITE_PRAGMA              = 19
-    integer, parameter, public :: SQLITE_READ                = 20
-    integer, parameter, public :: SQLITE_SELECT              = 21
-    integer, parameter, public :: SQLITE_TRANSACTION         = 22
-    integer, parameter, public :: SQLITE_UPDATE              = 23
-    integer, parameter, public :: SQLITE_ATTACH              = 24
-    integer, parameter, public :: SQLITE_DETACH              = 25
-    integer, parameter, public :: SQLITE_ALTER_TABLE         = 26
-    integer, parameter, public :: SQLITE_REINDEX             = 27
-    integer, parameter, public :: SQLITE_ANALYZE             = 28
-    integer, parameter, public :: SQLITE_CREATE_VTABLE       = 29
-    integer, parameter, public :: SQLITE_DROP_VTABLE         = 30
-    integer, parameter, public :: SQLITE_FUNCTION            = 31
-    integer, parameter, public :: SQLITE_SAVEPOINT           = 32
-    integer, parameter, public :: SQLITE_COPY                = 0
-    integer, parameter, public :: SQLITE_RECURSIVE           = 33
+    integer(kind=c_int), parameter, public :: SQLITE_CREATE_INDEX        = 1
+    integer(kind=c_int), parameter, public :: SQLITE_CREATE_TABLE        = 2
+    integer(kind=c_int), parameter, public :: SQLITE_CREATE_TEMP_INDEX   = 3
+    integer(kind=c_int), parameter, public :: SQLITE_CREATE_TEMP_TABLE   = 4
+    integer(kind=c_int), parameter, public :: SQLITE_CREATE_TEMP_TRIGGER = 5
+    integer(kind=c_int), parameter, public :: SQLITE_CREATE_TEMP_VIEW    = 6
+    integer(kind=c_int), parameter, public :: SQLITE_CREATE_TRIGGER      = 7
+    integer(kind=c_int), parameter, public :: SQLITE_CREATE_VIEW         = 8
+    integer(kind=c_int), parameter, public :: SQLITE_DELETE              = 9
+    integer(kind=c_int), parameter, public :: SQLITE_DROP_INDEX          = 10
+    integer(kind=c_int), parameter, public :: SQLITE_DROP_TABLE          = 11
+    integer(kind=c_int), parameter, public :: SQLITE_DROP_TEMP_INDEX     = 12
+    integer(kind=c_int), parameter, public :: SQLITE_DROP_TEMP_TABLE     = 13
+    integer(kind=c_int), parameter, public :: SQLITE_DROP_TEMP_TRIGGER   = 14
+    integer(kind=c_int), parameter, public :: SQLITE_DROP_TEMP_VIEW      = 15
+    integer(kind=c_int), parameter, public :: SQLITE_DROP_TRIGGER        = 16
+    integer(kind=c_int), parameter, public :: SQLITE_DROP_VIEW           = 17
+    integer(kind=c_int), parameter, public :: SQLITE_INSERT              = 18
+    integer(kind=c_int), parameter, public :: SQLITE_PRAGMA              = 19
+    integer(kind=c_int), parameter, public :: SQLITE_READ                = 20
+    integer(kind=c_int), parameter, public :: SQLITE_SELECT              = 21
+    integer(kind=c_int), parameter, public :: SQLITE_TRANSACTION         = 22
+    integer(kind=c_int), parameter, public :: SQLITE_UPDATE              = 23
+    integer(kind=c_int), parameter, public :: SQLITE_ATTACH              = 24
+    integer(kind=c_int), parameter, public :: SQLITE_DETACH              = 25
+    integer(kind=c_int), parameter, public :: SQLITE_ALTER_TABLE         = 26
+    integer(kind=c_int), parameter, public :: SQLITE_REINDEX             = 27
+    integer(kind=c_int), parameter, public :: SQLITE_ANALYZE             = 28
+    integer(kind=c_int), parameter, public :: SQLITE_CREATE_VTABLE       = 29
+    integer(kind=c_int), parameter, public :: SQLITE_DROP_VTABLE         = 30
+    integer(kind=c_int), parameter, public :: SQLITE_FUNCTION            = 31
+    integer(kind=c_int), parameter, public :: SQLITE_SAVEPOINT           = 32
+    integer(kind=c_int), parameter, public :: SQLITE_COPY                = 0
+    integer(kind=c_int), parameter, public :: SQLITE_RECURSIVE           = 33
 
-    integer, parameter, public :: SQLITE_STATUS_MEMORY_USED        = 0
-    integer, parameter, public :: SQLITE_STATUS_PAGECACHE_USED     = 1
-    integer, parameter, public :: SQLITE_STATUS_PAGECACHE_OVERFLOW = 2
-    integer, parameter, public :: SQLITE_STATUS_SCRATCH_USED       = 3 ! Not used.
-    integer, parameter, public :: SQLITE_STATUS_SCRATCH_OVERFLOW   = 4 ! Not used.
-    integer, parameter, public :: SQLITE_STATUS_MALLOC_SIZE        = 5
-    integer, parameter, public :: SQLITE_STATUS_PARSER_STACK       = 6
-    integer, parameter, public :: SQLITE_STATUS_PAGECACHE_SIZE     = 7
-    integer, parameter, public :: SQLITE_STATUS_SCRATCH_SIZE       = 8 ! Not used.
-    integer, parameter, public :: SQLITE_STATUS_MALLOC_COUNT       = 9
+    integer(kind=c_int), parameter, public :: SQLITE_STATUS_MEMORY_USED        = 0
+    integer(kind=c_int), parameter, public :: SQLITE_STATUS_PAGECACHE_USED     = 1
+    integer(kind=c_int), parameter, public :: SQLITE_STATUS_PAGECACHE_OVERFLOW = 2
+    integer(kind=c_int), parameter, public :: SQLITE_STATUS_SCRATCH_USED       = 3 ! Not used.
+    integer(kind=c_int), parameter, public :: SQLITE_STATUS_SCRATCH_OVERFLOW   = 4 ! Not used.
+    integer(kind=c_int), parameter, public :: SQLITE_STATUS_MALLOC_SIZE        = 5
+    integer(kind=c_int), parameter, public :: SQLITE_STATUS_PARSER_STACK       = 6
+    integer(kind=c_int), parameter, public :: SQLITE_STATUS_PAGECACHE_SIZE     = 7
+    integer(kind=c_int), parameter, public :: SQLITE_STATUS_SCRATCH_SIZE       = 8 ! Not used.
+    integer(kind=c_int), parameter, public :: SQLITE_STATUS_MALLOC_COUNT       = 9
 
-    integer, parameter, public :: SQLITE_DBSTATUS_LOOKASIDE_USED      = 0
-    integer, parameter, public :: SQLITE_DBSTATUS_CACHE_USED          = 1
-    integer, parameter, public :: SQLITE_DBSTATUS_SCHEMA_USED         = 2
-    integer, parameter, public :: SQLITE_DBSTATUS_STMT_USED           = 3
-    integer, parameter, public :: SQLITE_DBSTATUS_LOOKASIDE_HIT       = 4
-    integer, parameter, public :: SQLITE_DBSTATUS_LOOKASIDE_MISS_SIZE = 5
-    integer, parameter, public :: SQLITE_DBSTATUS_LOOKASIDE_MISS_FULL = 6
-    integer, parameter, public :: SQLITE_DBSTATUS_CACHE_HIT           = 7
-    integer, parameter, public :: SQLITE_DBSTATUS_CACHE_MISS          = 8
-    integer, parameter, public :: SQLITE_DBSTATUS_CACHE_WRITE         = 9
-    integer, parameter, public :: SQLITE_DBSTATUS_DEFERRED_FKS        = 10
-    integer, parameter, public :: SQLITE_DBSTATUS_CACHE_USED_SHARED   = 11
-    integer, parameter, public :: SQLITE_DBSTATUS_CACHE_SPILL         = 12
-    integer, parameter, public :: SQLITE_DBSTATUS_MAX                 = 12 ! Largest defined DBSTATUS.
+    integer(kind=c_int), parameter, public :: SQLITE_DBSTATUS_LOOKASIDE_USED      = 0
+    integer(kind=c_int), parameter, public :: SQLITE_DBSTATUS_CACHE_USED          = 1
+    integer(kind=c_int), parameter, public :: SQLITE_DBSTATUS_SCHEMA_USED         = 2
+    integer(kind=c_int), parameter, public :: SQLITE_DBSTATUS_STMT_USED           = 3
+    integer(kind=c_int), parameter, public :: SQLITE_DBSTATUS_LOOKASIDE_HIT       = 4
+    integer(kind=c_int), parameter, public :: SQLITE_DBSTATUS_LOOKASIDE_MISS_SIZE = 5
+    integer(kind=c_int), parameter, public :: SQLITE_DBSTATUS_LOOKASIDE_MISS_FULL = 6
+    integer(kind=c_int), parameter, public :: SQLITE_DBSTATUS_CACHE_HIT           = 7
+    integer(kind=c_int), parameter, public :: SQLITE_DBSTATUS_CACHE_MISS          = 8
+    integer(kind=c_int), parameter, public :: SQLITE_DBSTATUS_CACHE_WRITE         = 9
+    integer(kind=c_int), parameter, public :: SQLITE_DBSTATUS_DEFERRED_FKS        = 10
+    integer(kind=c_int), parameter, public :: SQLITE_DBSTATUS_CACHE_USED_SHARED   = 11
+    integer(kind=c_int), parameter, public :: SQLITE_DBSTATUS_CACHE_SPILL         = 12
+    integer(kind=c_int), parameter, public :: SQLITE_DBSTATUS_MAX                 = 12 ! Largest defined DBSTATUS.
 
     integer(kind=c_int), parameter, public :: SQLITE_CONFIG_SINGLETHREAD        =  1 ! nil
     integer(kind=c_int), parameter, public :: SQLITE_CONFIG_MULTITHREAD         =  2 ! nil
@@ -191,6 +147,8 @@ module sqlite
     public :: sqlite3_bind_int64
     public :: sqlite3_bind_text
     public :: sqlite3_bind_text_
+    public :: sqlite3_busy_handler
+    public :: sqlite3_busy_timeout
     public :: sqlite3_clear_bindings
     public :: sqlite3_close
     public :: sqlite3_column_double
@@ -282,6 +240,25 @@ module sqlite
             integer(kind=c_size_t), intent(in), value :: destructor
             integer(kind=c_int)                       :: sqlite3_bind_text_
         end function sqlite3_bind_text_
+
+        ! int sqlite3_busy_handler(sqlite3 *db, int (*)(void *udp, int n), void *udp)
+        function sqlite3_busy_handler(db, funptr, udp) bind(c, name='sqlite3_busy_handler')
+            import :: c_funptr, c_int, c_ptr
+            implicit none
+            type(c_ptr),    intent(in), value :: db
+            type(c_funptr), intent(in), value :: funptr
+            type(c_ptr),    intent(in), value :: udp
+            integer(kind=c_int)               :: sqlite3_busy_handler
+        end function sqlite3_busy_handler
+
+        ! int sqlite3_busy_timeout(sqlite3 *db, int ms)
+        function sqlite3_busy_timeout(db, ms) bind(c, name='sqlite3_busy_timeout')
+            import :: c_int, c_ptr
+            implicit none
+            type(c_ptr),         intent(in), value :: db
+            integer(kind=c_int), intent(in), value :: ms
+            integer(kind=c_int)                    :: sqlite3_busy_timeout
+        end function sqlite3_busy_timeout
 
         ! int sqlite3_clear_bindings(sqlite3_stmt *stmt)
         function sqlite3_clear_bindings(stmt) bind(c, name='sqlite3_clear_bindings')
@@ -577,8 +554,12 @@ module sqlite
         ! Arguments:
         !
         !   db                  -   A database connection.
-        !   update_callback     -   An application-defined callback function that is called when a database row is modified.
-        !   udp                 -   An application-defined user-data pointer. This value is made available to the update callback.
+        !   update_callback     -   An application-defined callback function
+        !                           that is called when a database row is
+        !                           modified.
+        !   udp                 -   An application-defined user-data pointer.
+        !                           This value is made available to the update
+        !                           callback.
         !
         !
         ! void update_callback(void *udp, int type, const char *db_name, const char *tbl_name, sqlite3_int64 rowid)
@@ -586,10 +567,17 @@ module sqlite
         ! Arguments:
         !
         !   udp                 -   The application-defined user-data pointer.
-        !   type                -   The type of database update. Possible values are SQLITE_INSERT, SQLITE_UPDATE, and SQLITE_DELETE.
-        !   db_name             -   The logical name of the database that is being modified. Names include main, temp, or any name passed to ATTACH DATABASE.
-        !   tbl_name            -   The name of the table that is being modified.
-        !   rowid               -   The ROWID of the row being modified. In the case of an UPDATE, this is the ROWID value after the modification has taken place.
+        !   type                -   The type of database update. Possible values
+        !                           are SQLITE_INSERT, SQLITE_UPDATE, and
+        !                           SQLITE_DELETE.
+        !   db_name             -   The logical name of the database that is
+        !                           being modified. Names include main, temp, or
+        !                           any name passed to ATTACH DATABASE.
+        !   tbl_name            -   The name of the table that is being
+        !                           modified.
+        !   rowid               -   The ROWID of the row being modified. In the
+        !                           case of an UPDATE, this is the ROWID value
+        !                           after the modification has taken place.
         !
         function sqlite3_update_hook(db, update_callback, udp) bind(c, name='sqlite3_update_hook')
             import :: c_funptr, c_ptr
