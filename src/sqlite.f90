@@ -6,6 +6,7 @@
 ! Licence: ISC
 module sqlite
     use, intrinsic :: iso_c_binding
+    use, intrinsic :: iso_fortran_env, only: i8 => int64
     use :: sqlite_util
     implicit none (type, external)
     private
@@ -649,7 +650,7 @@ contains
         type(c_ptr),      intent(inout)        :: stmt
         integer,          intent(in)           :: idx
         character(len=*), intent(in)           :: val
-        integer(kind=8),  intent(in), optional :: destructor
+        integer(kind=i8), intent(in), optional :: destructor
         integer                                :: sqlite3_bind_text
 
         if (present(destructor)) then
