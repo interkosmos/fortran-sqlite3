@@ -23,7 +23,7 @@ application against `libfortran-sqlite3.a` and `-lsqlite3`.
 Simply execute the Fortran Package Manager:
 
 ```
-$ fpm build --profile release
+$ fpm build --profile=release
 ```
 
 The output files are written to `build/`.

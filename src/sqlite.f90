@@ -169,6 +169,7 @@ module sqlite
     public :: sqlite3_exec
     public :: sqlite3_exec_
     public :: sqlite3_finalize
+    public :: sqlite3_finalize_
     public :: sqlite3_free
     public :: sqlite3_initialize
     public :: sqlite3_last_insert_rowid
@@ -398,12 +399,12 @@ module sqlite
         end function sqlite3_exec_
 
         ! int sqlite3_finalize(sqlite3_stmt *stmt)
-        function sqlite3_finalize(stmt) bind(c, name='sqlite3_finalize')
+        function sqlite3_finalize_(stmt) bind(c, name='sqlite3_finalize')
             import :: c_int, c_ptr
             implicit none
             type(c_ptr), intent(in), value :: stmt
-            integer(kind=c_int)            :: sqlite3_finalize
-        end function sqlite3_finalize
+            integer(kind=c_int)            :: sqlite3_finalize_
+        end function sqlite3_finalize_
 
         ! int sqlite3_initialize(void)
         function sqlite3_initialize() bind(c, name='sqlite3_initialize')
@@ -722,6 +723,14 @@ contains
 
         if (present(errmsg)) call c_f_str_ptr(ptr, errmsg)
     end function sqlite3_exec
+
+    function sqlite3_finalize(stmt)
+        type(c_ptr), intent(inout) :: stmt
+        integer                    :: sqlite3_finalize
+
+        sqlite3_finalize = sqlite3_finalize_(stmt)
+        if (sqlite3_finalize == SQLITE_OK) stmt = c_null_ptr
+    end function sqlite3_finalize
 
     function sqlite3_libversion()
         type(c_ptr)                   :: ptr
