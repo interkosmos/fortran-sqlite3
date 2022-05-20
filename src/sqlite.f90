@@ -143,6 +143,11 @@ module sqlite
     integer(kind=c_size_t), parameter, public :: SQLITE_STATIC    = 0
     integer(kind=c_size_t), parameter, public :: SQLITE_TRANSIENT = -1
 
+    public :: sqlite3_backup_finish
+    public :: sqlite3_backup_init
+    public :: sqlite3_backup_pagecount
+    public :: sqlite3_backup_remaining
+    public :: sqlite3_backup_step
     public :: sqlite3_bind_double
     public :: sqlite3_bind_int
     public :: sqlite3_bind_int64
@@ -201,6 +206,50 @@ module sqlite
     public :: sqlite3_update_hook
 
     interface
+        ! int sqlite3_backup_finish(sqlite3_backup *p)
+        function sqlite3_backup_finish(p) bind(c, name='sqlite3_backup_finish')
+            import :: c_int, c_ptr
+            implicit none
+            type(c_ptr), intent(in), value :: p
+            integer(kind=c_int)            :: sqlite3_backup_finish
+        end function sqlite3_backup_finish
+
+        ! sqlite3_backup *sqlite3_backup_init(sqlite3 *pDest, const char *zDestName, sqlite3 *pSource, const char *zSourceName)
+        function sqlite3_backup_init_(p_dest, z_dest_name, p_source, z_source_name) bind(c, name='sqlite3_backup_init')
+            import :: c_char, c_ptr
+            implicit none
+            type(c_ptr),            intent(in), value :: p_dest
+            character(kind=c_char), intent(in)        :: z_dest_name
+            type(c_ptr),            intent(in), value :: p_source
+            character(kind=c_char), intent(in)        :: z_source_name
+            type(c_ptr)                               :: sqlite3_backup_init_
+        end function sqlite3_backup_init_
+
+        ! int sqlite3_backup_pagecount(sqlite3_backup *p)
+        function sqlite3_backup_pagecount(p) bind(c, name='sqlite3_backup_pagecount')
+            import :: c_int, c_ptr
+            implicit none
+            type(c_ptr), intent(in), value :: p
+            integer(kind=c_int)            :: sqlite3_backup_pagecount
+        end function sqlite3_backup_pagecount
+
+        ! int sqlite3_backup_remaining(sqlite3_backup *p)
+        function sqlite3_backup_remaining(p) bind(c, name='sqlite3_backup_remaining')
+            import :: c_int, c_ptr
+            implicit none
+            type(c_ptr), intent(in), value :: p
+            integer(kind=c_int)            :: sqlite3_backup_remaining
+        end function sqlite3_backup_remaining
+
+        ! int sqlite3_backup_step(sqlite3_backup *p, int nPage)
+        function sqlite3_backup_step(p, npage) bind(c, name='sqlite3_backup_step')
+            import :: c_int, c_ptr
+            implicit none
+            type(c_ptr),         intent(in), value :: p
+            integer(kind=c_int), intent(in), value :: npage
+            integer(kind=c_int)                    :: sqlite3_backup_step
+        end function sqlite3_backup_step
+
         ! int sqlite3_bind_double(sqlite3_stmt *stmt, int idx, double val)
         function sqlite3_bind_double(stmt, idx, val) bind(c, name='sqlite3_bind_double')
             import :: c_double, c_int, c_ptr
@@ -271,12 +320,12 @@ module sqlite
         end function sqlite3_clear_bindings
 
         ! int sqlite3_close(sqlite3 *db)
-        function sqlite3_close(db) bind(c, name='sqlite3_close')
+        function sqlite3_close_(db) bind(c, name='sqlite3_close')
             import :: c_int, c_ptr
             implicit none
             type(c_ptr), intent(in), value :: db
-            integer(kind=c_int)            :: sqlite3_close
-        end function sqlite3_close
+            integer(kind=c_int)            :: sqlite3_close_
+        end function sqlite3_close_
 
         ! double sqlite3_column_double(sqlite3_stmt *stmt, int icol)
         function sqlite3_column_double(stmt, icol) bind(c, name='sqlite3_column_double')
@@ -645,6 +694,19 @@ module sqlite
         module procedure :: sqlite3_config_null
     end interface
 contains
+    function sqlite3_backup_init(p_dest, z_dest_name, p_source, z_source_name)
+        type(c_ptr),      intent(in) :: p_dest
+        character(len=*), intent(in) :: z_dest_name
+        type(c_ptr),      intent(in) :: p_source
+        character(len=*), intent(in) :: z_source_name
+        type(c_ptr)                  :: sqlite3_backup_init
+
+        sqlite3_backup_init = sqlite3_backup_init_(p_dest, &
+                                                   z_dest_name // c_null_char, &
+                                                   p_source, &
+                                                   z_source_name // c_null_char)
+    end function sqlite3_backup_init
+
     function sqlite3_bind_text(stmt, idx, val, destructor)
         !! Binds text to column. This wrapper passes destructor
         !! `SQLITE_TRANSIENT` by default!
@@ -661,6 +723,14 @@ contains
 
         sqlite3_bind_text = sqlite3_bind_text_(stmt, idx, val, len(val), SQLITE_TRANSIENT)
     end function sqlite3_bind_text
+
+    function sqlite3_close(db)
+        type(c_ptr), intent(inout) :: db
+        integer                    :: sqlite3_close
+
+        sqlite3_close = sqlite3_close_(db)
+        if (sqlite3_close == SQLITE_OK) db = c_null_ptr
+    end function sqlite3_close
 
     function sqlite3_column_text(stmt, icol)
         type(c_ptr), intent(inout)    :: stmt
@@ -703,10 +773,7 @@ contains
         type(c_ptr)                   :: ptr
 
         ptr = sqlite3_errmsg_(db)
-
-        if (c_associated(ptr)) then
-            call c_f_str_ptr(ptr, sqlite3_errmsg)
-        end if
+        if (c_associated(ptr)) call c_f_str_ptr(ptr, sqlite3_errmsg)
     end function sqlite3_errmsg
 
     function sqlite3_exec(db, sql, callback, client_data, errmsg)
@@ -720,7 +787,6 @@ contains
 
         sqlite3_exec = sqlite3_exec_(db, sql // c_null_char, callback, client_data, ptr)
         if (.not. c_associated(ptr)) return
-
         if (present(errmsg)) call c_f_str_ptr(ptr, errmsg)
     end function sqlite3_exec
 
