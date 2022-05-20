@@ -145,6 +145,7 @@ module sqlite
 
     public :: sqlite3_backup_finish
     public :: sqlite3_backup_init
+    public :: sqlite3_backup_init_
     public :: sqlite3_backup_pagecount
     public :: sqlite3_backup_remaining
     public :: sqlite3_backup_step
@@ -157,6 +158,7 @@ module sqlite
     public :: sqlite3_busy_timeout
     public :: sqlite3_clear_bindings
     public :: sqlite3_close
+    public :: sqlite3_close_
     public :: sqlite3_column_double
     public :: sqlite3_column_int
     public :: sqlite3_column_int64
