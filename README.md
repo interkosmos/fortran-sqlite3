@@ -1,5 +1,6 @@
 # fortran-sqlite3
-A work-in-progress collection of Fortran 2018 interface bindings to SQLite 3.
+A work-in-progress collection of Fortran 2018 interface bindings to SQLite 3
+(≥ 3.39.0).
 
 ## Build Instructions
 Make sure that `libsqlite3` is installed with development headers. On FreeBSD,
