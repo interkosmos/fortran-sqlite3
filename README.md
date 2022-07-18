@@ -49,12 +49,12 @@ The following SQL schema will be created by the example:
 ```sql
 CREATE TABLE example_table (
     id     INTEGER PRIMARY KEY,
-    string VARCHAR(32),
+    string TEXT,
     value  INTEGER
 );
 ```
 
-The program opens a database `example.db`, creates the table `example_table`,
+The program opens a database `example.sqlite`, creates the table `example_table`,
 inserts some values, then reads them back in, and prints them to console.
 
 The module `sqlite_util` contains C interoperability functions/interfaces to
@@ -73,17 +73,17 @@ program example
     type(c_ptr)                   :: stmt
 
     ! Open SQLite database.
-    rc = sqlite3_open('example.db', db)
+    rc = sqlite3_open('example.sqlite', db)
 
     ! Create table.
     rc = sqlite3_exec(db, "CREATE TABLE example_table (" // &
                           "id     INTEGER PRIMARY KEY," // &
-                          "string VARCHAR(32)," // &
+                          "string TEXT," // &
                           "value  INTEGER)", c_null_ptr, c_null_ptr, errmsg)
     if (rc /= SQLITE_OK) print '("sqlite3_exec(): ", a)', errmsg
 
     ! Create a prepared statement.
-    rc = sqlite3_prepare(db, "INSERT INTO example_table(string, value) VALUES(?, ?)", stmt)
+    rc = sqlite3_prepare_v2(db, "INSERT INTO example_table(string, value) VALUES(?, ?)", stmt)
 
     ! Bind the values to the statement.
     rc = sqlite3_bind_text(stmt, 1, 'one')
@@ -130,7 +130,7 @@ contains
                     write (*, '(a12)', advance='no') sqlite3_column_text(stmt, i)
 
                 case default
-                    write (*, '(" unsupported")', advance='no')
+                    write (*, '(" not implemented")', advance='no')
             end select
         end do
 
@@ -149,7 +149,7 @@ $ ./example
 
 ## fpm
 You can add *fortran-sqlite3* as an [fpm](https://github.com/fortran-lang/fpm)
-dependency:
+dependency to your `fpm.toml`:
 
 ```toml
 [dependencies]
