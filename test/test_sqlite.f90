@@ -92,11 +92,12 @@ program test_sqlite
     character(len=*), parameter :: DB_FILE  = 'test.db'
     character(len=*), parameter :: DB_TABLE = 'test_table'
 
-    character(len=:), allocatable :: errmsg ! Error message.
-    integer                       :: rc     ! Return code.
-    type(c_ptr)                   :: db     ! SQLite database.
-    type(c_ptr)                   :: stmt   ! SQLite statement.
-    type(c_ptr)                   :: udp    ! User-data pointer.
+    character(len=:), allocatable :: db_name ! Database name.
+    character(len=:), allocatable :: errmsg  ! Error message.
+    integer                       :: rc      ! Return code.
+    type(c_ptr)                   :: db      ! SQLite database.
+    type(c_ptr)                   :: stmt    ! SQLite statement.
+    type(c_ptr)                   :: udp     ! User-data pointer.
 
     ! Set configuration to single thread.
     rc = sqlite3_config(SQLITE_CONFIG_SINGLETHREAD)
@@ -111,6 +112,10 @@ program test_sqlite
     ! Open SQLite database.
     rc = sqlite3_open(DB_FILE, db)
     if (rc /= SQLITE_OK) stop 'sqlite3_open(): failed'
+
+    db_name = sqlite3_db_name(db, 0)
+    if (.not. allocated(db_name)) stop 'sqlite3_db_name(): failed'
+    print '("DB name: ", a)', db_name
 
     ! Testing logging.
     call sqlite3_log(1, 'TEST LOG' // c_null_char)

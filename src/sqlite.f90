@@ -169,6 +169,8 @@ module sqlite
     public :: sqlite3_config_int_
     public :: sqlite3_config_null_
     public :: sqlite3_data_count
+    public :: sqlite3_db_name
+    public :: sqlite3_db_name_
     public :: sqlite3_db_status
     public :: sqlite3_errcode
     public :: sqlite3_errmsg
@@ -408,6 +410,15 @@ module sqlite
             type(c_ptr), intent(in), value :: stmt
             integer(kind=c_int)            :: sqlite3_data_count
         end function sqlite3_data_count
+
+        ! const char *sqlite3_db_name(sqlite3 *db, int n)
+        function sqlite3_db_name_(db, n) bind(c, name='sqlite3_db_name')
+            import :: c_int, c_ptr
+            implicit none
+            type(c_ptr),         intent(in), value :: db
+            integer(kind=c_int), intent(in), value :: n
+            type(c_ptr)                            :: sqlite3_db_name_
+        end function sqlite3_db_name_
 
         ! int sqlite3_db_status(sqlite3 *db, int op, int *pCurrent, int *pHighwater, int resetFlag)
         function sqlite3_db_status(db, op, current, highwater, reset_flag) bind(c, name='sqlite3_db_status')
@@ -768,6 +779,16 @@ contains
 
         sqlite3_config_null = sqlite3_config_null_(option)
     end function sqlite3_config_null
+
+    function sqlite3_db_name(db, n)
+        type(c_ptr), intent(in)       :: db
+        integer,     intent(in)       :: n
+        character(len=:), allocatable :: sqlite3_db_name
+        type(c_ptr)                   :: ptr
+
+        ptr = sqlite3_db_name_(db, n)
+        if (c_associated(ptr)) call c_f_str_ptr(ptr, sqlite3_db_name)
+    end function sqlite3_db_name
 
     function sqlite3_errmsg(db)
         type(c_ptr), intent(in)       :: db
