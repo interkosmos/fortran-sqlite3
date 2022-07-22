@@ -11,7 +11,7 @@ LDFLAGS = -I$(PREFIX)/include/ -L$(PREFIX)/lib/
 LDLIBS  = -lsqlite3
 ARFLAGS = rcs
 TARGET  = libfortran-sqlite3.a
-TEST    = test_sqlite
+TEST    = test_sqlite3
 
 .PHONY: all clean test
 
@@ -19,12 +19,12 @@ all: $(TARGET)
 test: $(TEST)
 
 $(TARGET):
-	$(FC) $(FFLAGS) -c src/sqlite_util.f90
-	$(FC) $(FFLAGS) -c src/sqlite.f90
-	$(AR) $(ARFLAGS) $(TARGET) sqlite_util.o sqlite.o
+	$(FC) $(FFLAGS) -c src/sqlite3_util.f90
+	$(FC) $(FFLAGS) -c src/sqlite3.f90
+	$(AR) $(ARFLAGS) $(TARGET) sqlite3_util.o sqlite3.o
 
 $(TEST): $(TARGET)
-	$(FC) $(FFLAGS) $(LDFLAGS) -o test_sqlite test/test_sqlite.f90 $(TARGET) $(LDLIBS)
+	$(FC) $(FFLAGS) $(LDFLAGS) -o test_sqlite3 test/test_sqlite3.f90 $(TARGET) $(LDLIBS)
 
 clean:
 	if [ `ls -1 *.mod 2>/dev/null | wc -l` -gt 0 ]; then rm *.mod; fi

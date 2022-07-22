@@ -1,10 +1,10 @@
-! sqlite_util.f90
+! sqlite3_util.f90
 !
 ! C interoperability interfaces and procedures.
 !
 ! Author:  Philipp Engel
 ! Licence: ISC
-module sqlite_util
+module sqlite3_util
     use, intrinsic :: iso_c_binding
     use, intrinsic :: iso_fortran_env, only: i8 => int64, r8 => real64
     implicit none (type, external)
@@ -47,4 +47,4 @@ contains
         allocate (character(len=sz) :: f_str)
         f_str = copy(ptrs)
     end subroutine c_f_str_ptr
-end module sqlite_util
+end module sqlite3_util

@@ -1,13 +1,13 @@
-! sqlite.f90
+! sqlite3.f90
 !
 ! Fortran 2018 interface bindings to SQLite 3.
 !
 ! Author:  Philipp Engel
 ! Licence: ISC
-module sqlite
+module sqlite3
     use, intrinsic :: iso_c_binding
     use, intrinsic :: iso_fortran_env, only: i8 => int64
-    use :: sqlite_util
+    use :: sqlite3_util
     implicit none (type, external)
     private
 
@@ -186,6 +186,7 @@ module sqlite
     public :: sqlite3_libversion_
     public :: sqlite3_libversion_number
     public :: sqlite3_log
+    public :: sqlite3_log_
     public :: sqlite3_open
     public :: sqlite3_open_
     public :: sqlite3_prepare
@@ -498,10 +499,10 @@ module sqlite
         end function sqlite3_libversion_number
 
         ! int sqlite3_open(const char *filename, sqlite3 **db)
-        function sqlite3_open_(filename, db) bind(c, name='sqlite3_open')
+        function sqlite3_open_(file_name, db) bind(c, name='sqlite3_open')
             import :: c_char, c_int, c_ptr
             implicit none
-            character(kind=c_char), intent(in)    :: filename
+            character(kind=c_char), intent(in)    :: file_name
             type(c_ptr),            intent(inout) :: db
             integer(kind=c_int)                   :: sqlite3_open_
         end function sqlite3_open_
@@ -660,12 +661,12 @@ module sqlite
         end subroutine sqlite3_free
 
         ! void sqlite3_log(int iErrCode, const char *zFormat, ...)
-        subroutine sqlite3_log(ierr_code, zformat) bind(c, name='sqlite3_log')
+        subroutine sqlite3_log_(ierr_code, zformat) bind(c, name='sqlite3_log')
             import :: c_char, c_int
             implicit none
             integer(kind=c_int),    intent(in), value :: ierr_code
             character(kind=c_char), intent(in)        :: zformat
-        end subroutine sqlite3_log
+        end subroutine sqlite3_log_
 
         ! void sqlite3_str_append(sqlite3_str *str, const char *zIn, int N)
         subroutine sqlite3_str_append(str, zin, n) bind(c, name='slqite3_str_append')
@@ -830,12 +831,12 @@ contains
         call c_f_str_ptr(ptr, sqlite3_libversion)
     end function sqlite3_libversion
 
-    function sqlite3_open(filename, db)
-        character(len=*), intent(in)  :: filename
+    function sqlite3_open(file_name, db)
+        character(len=*), intent(in)  :: file_name
         type(c_ptr),      intent(out) :: db
         integer                       :: sqlite3_open
 
-        sqlite3_open = sqlite3_open_(filename // c_null_char, db)
+        sqlite3_open = sqlite3_open_(file_name // c_null_char, db)
     end function sqlite3_open
 
     function sqlite3_prepare(db, sql, stmt)
@@ -874,4 +875,11 @@ contains
         if (.not. c_associated(ptr)) return
         call c_f_str_ptr(ptr, sqlite3_str_value)
     end function sqlite3_str_value
-end module sqlite
+
+    subroutine sqlite3_log(ierr_code, zformat)
+        integer,          intent(in) :: ierr_code
+        character(len=*), intent(in) :: zformat
+
+        call sqlite3_log_(ierr_code, zformat // c_null_char)
+    end subroutine sqlite3_log
+end module sqlite3

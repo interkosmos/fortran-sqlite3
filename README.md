@@ -64,8 +64,8 @@ convert C char pointer to Fortran allocatable character.
 ! example.f90
 program example
     use, intrinsic :: iso_c_binding
-    use :: sqlite
-    use :: sqlite_util
+    use :: sqlite3
+    use :: sqlite3_util
     implicit none (type, external)
     character(len=:), allocatable :: errmsg
     integer                       :: rc

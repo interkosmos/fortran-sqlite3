@@ -1,8 +1,8 @@
-! test_sqlite.f90
+! test_sqlite3.f90
 module callbacks
     use, intrinsic :: iso_c_binding
-    use :: sqlite
-    use :: sqlite_util
+    use :: sqlite3
+    use :: sqlite3_util
     implicit none
     private
 
@@ -79,14 +79,14 @@ contains
                     rowid, tbl_str, db_str
         end select
 
-        if (allocated(db_str)) deallocate(db_str)
-        if (allocated(db_str)) deallocate(tbl_str)
+        if (allocated(db_str)) deallocate (db_str)
+        if (allocated(db_str)) deallocate (tbl_str)
     end subroutine update_callback
 end module callbacks
 
-program test_sqlite
+program test_sqlite3
     use, intrinsic :: iso_c_binding
-    use :: sqlite
+    use :: sqlite3
     use :: callbacks
     implicit none (type, external)
     character(len=*), parameter :: DB_FILE  = 'test.db'
@@ -118,7 +118,7 @@ program test_sqlite
     print '("DB name: ", a)', db_name
 
     ! Testing logging.
-    call sqlite3_log(1, 'TEST LOG' // c_null_char)
+    call sqlite3_log(1, 'TEST LOG')
 
     ! Enable WAL mode.
     print '("Turning WAL mode on ...")'
@@ -236,12 +236,19 @@ contains
     end function journal_mode_wal
 
     subroutine print_error(rc, func, errmsg)
-      integer,                       intent(in)    :: rc
-      character(len=*),              intent(in)    :: func
-      character(len=:), allocatable, intent(inout) :: errmsg
+        integer,                       intent(in)    :: rc
+        character(len=*),              intent(in)    :: func
+        character(len=:), allocatable, intent(inout) :: errmsg
 
-      if (rc /= SQLITE_OK) print '(a, "(): ", a)', trim(func), errmsg
-      if (allocated(errmsg)) deallocate(errmsg)
+        if (rc == SQLITE_OK) return
+
+        if (allocated(errmsg)) then
+            print '(a, "(): ", a)', trim(func), errmsg
+            deallocate (errmsg)
+            return
+        end if
+
+        print '(a, "(): unknown error")', trim(func)
     end subroutine print_error
 
     subroutine print_values(stmt, ncols)
@@ -265,7 +272,7 @@ contains
                     buf = sqlite3_column_text(stmt, i)
                     if (allocated(buf)) then
                         write (*, '(a12)', advance='no') buf
-                        deallocate(buf)
+                        deallocate (buf)
                     end if
 
                 case default
@@ -275,4 +282,4 @@ contains
 
         print *
     end subroutine print_values
-end program test_sqlite
+end program test_sqlite3

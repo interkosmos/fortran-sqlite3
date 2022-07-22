@@ -1,11 +1,11 @@
 name = "fortran-sqlite3"
-version = "0.1.0"
+version = "0.2.0"
 license = "ISC"
 author = "Philipp Engel"
 maintainer = "@interkosmos"
-copyright = "Copyright (c) 2021, Philipp Engel"
+copyright = "Copyright (c) 2022, Philipp Engel"
 description = "Fortran 2018 ISO C binding interfaces to SQLite 3"
-keywords = ["sqlite"]
+keywords = [ "sqlite", "sqlite3" ]
 
 [build]
 link = "sqlite3"
@@ -14,6 +14,6 @@ link = "sqlite3"
 source-dir = "src"
 
 [[test]]
-name = "test_sqlite"
+name = "test_sqlite3"
 source-dir = "test"
-main = "test_sqlite.f90"
+main = "test_sqlite3.f90"
