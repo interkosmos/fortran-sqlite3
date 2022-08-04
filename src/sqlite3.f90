@@ -140,6 +140,29 @@ module sqlite3
     integer(kind=c_int), parameter, public :: SQLITE_CONFIG_SORTERREF_SIZE      = 28 ! int nByte
     integer(kind=c_int), parameter, public :: SQLITE_CONFIG_MEMDB_MAXSIZE       = 29 ! sqlite3_int64
 
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_READONLY      = int(z'00000001') ! Ok for sqlite3_open_v2()
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_READWRITE     = int(z'00000002') ! Ok for sqlite3_open_v2()
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_CREATE        = int(z'00000004') ! Ok for sqlite3_open_v2()
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_DELETEONCLOSE = int(z'00000008') ! VFS only
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_EXCLUSIVE     = int(z'00000010') ! VFS only
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_AUTOPROXY     = int(z'00000020') ! VFS only
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_URI           = int(z'00000040') ! Ok for sqlite3_open_v2()
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_MEMORY        = int(z'00000080') ! Ok for sqlite3_open_v2()
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_MAIN_DB       = int(z'00000100') ! VFS only
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_TEMP_DB       = int(z'00000200') ! VFS only
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_TRANSIENT_DB  = int(z'00000400') ! VFS only
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_MAIN_JOURNAL  = int(z'00000800') ! VFS only
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_TEMP_JOURNAL  = int(z'00001000') ! VFS only
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_SUBJOURNAL    = int(z'00002000') ! VFS only
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_SUPER_JOURNAL = int(z'00004000') ! VFS only
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_NOMUTEX       = int(z'00008000') ! Ok for sqlite3_open_v2()
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_FULLMUTEX     = int(z'00010000') ! Ok for sqlite3_open_v2()
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_SHAREDCACHE   = int(z'00020000') ! Ok for sqlite3_open_v2()
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_PRIVATECACHE  = int(z'00040000') ! Ok for sqlite3_open_v2()
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_WAL           = int(z'00080000') ! VFS only
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_NOFOLLOW      = int(z'01000000') ! Ok for sqlite3_open_v2()
+    integer(kind=c_int), parameter, public :: SQLITE_OPEN_EXRESCODE     = int(z'02000000') ! Extended result codes
+
     integer(kind=c_size_t), parameter, public :: SQLITE_STATIC    = 0
     integer(kind=c_size_t), parameter, public :: SQLITE_TRANSIENT = -1
 
@@ -189,6 +212,8 @@ module sqlite3
     public :: sqlite3_log_
     public :: sqlite3_open
     public :: sqlite3_open_
+    public :: sqlite3_open_v2
+    public :: sqlite3_open_v2_
     public :: sqlite3_prepare
     public :: sqlite3_prepare_
     public :: sqlite3_prepare_v2
@@ -208,6 +233,7 @@ module sqlite3
     public :: sqlite3_str_new
     public :: sqlite3_str_reset
     public :: sqlite3_str_value
+    public :: sqlite3_threadsafe
     public :: sqlite3_update_hook
 
     interface
@@ -507,6 +533,17 @@ module sqlite3
             integer(kind=c_int)                   :: sqlite3_open_
         end function sqlite3_open_
 
+        ! int sqlite3_open_v2(const char *filename, sqlite3 **db, int flags, const char *vfs)
+        function sqlite3_open_v2_(file_name, db, flags, vfs) bind(c, name='sqlite3_open_v2')
+            import :: c_char, c_int, c_ptr
+            implicit none
+            character(kind=c_char), intent(in)        :: file_name
+            type(c_ptr),            intent(inout)     :: db
+            integer(kind=c_int),    intent(in), value :: flags
+            type(c_ptr),            intent(in), value :: vfs
+            integer(kind=c_int)                       :: sqlite3_open_v2_
+        end function sqlite3_open_v2_
+
         ! int sqlite3_prepare(sqlite3 *db, const char *sql, int nbyte, sqlite3_stmt **stmt, const char **tail)
         function sqlite3_prepare_(db, sql, nbyte, stmt, tail) bind(c, name='sqlite3_prepare')
             import :: c_char, c_int, c_ptr
@@ -652,6 +689,12 @@ module sqlite3
             type(c_ptr),    intent(in), value :: udp
             type(c_ptr)                       :: sqlite3_update_hook
         end function sqlite3_update_hook
+
+        function sqlite3_threadsafe() bind(c, name='sqlite3_threadsafe')
+            import :: c_int
+            implicit none
+            integer(kind=c_int) :: sqlite3_threadsafe
+        end function sqlite3_threadsafe
 
         ! void sqlite3_free(void *ptr)
         subroutine sqlite3_free(ptr) bind(c, name='sqlite3_free')
@@ -838,6 +881,21 @@ contains
 
         sqlite3_open = sqlite3_open_(file_name // c_null_char, db)
     end function sqlite3_open
+
+    function sqlite3_open_v2(file_name, db, flags, vfs)
+        character(len=*), intent(in)           :: file_name
+        type(c_ptr),      intent(out)          :: db
+        integer,          intent(in)           :: flags
+        type(c_ptr),      intent(in), optional :: vfs
+        integer                                :: sqlite3_open_v2
+
+        if (present(vfs)) then
+            sqlite3_open_v2 = sqlite3_open_v2_(file_name // c_null_char, db, flags, vfs)
+            return
+        end if
+
+        sqlite3_open_v2 = sqlite3_open_v2_(file_name // c_null_char, db, flags, c_null_ptr)
+    end function sqlite3_open_v2
 
     function sqlite3_prepare(db, sql, stmt)
         type(c_ptr),      intent(inout) :: db

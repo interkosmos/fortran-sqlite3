@@ -57,7 +57,7 @@ CREATE TABLE example_table (
 The program opens a database `example.sqlite`, creates the table `example_table`,
 inserts some values, then reads them back in, and prints them to console.
 
-The module `sqlite_util` contains C interoperability functions/interfaces to
+The module `sqlite3_util` contains C interoperability functions/interfaces to
 convert C char pointer to Fortran allocatable character.
 
 ```fortran

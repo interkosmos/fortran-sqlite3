@@ -80,7 +80,7 @@ contains
         end select
 
         if (allocated(db_str)) deallocate (db_str)
-        if (allocated(db_str)) deallocate (tbl_str)
+        if (allocated(tbl_str)) deallocate (tbl_str)
     end subroutine update_callback
 end module callbacks
 
