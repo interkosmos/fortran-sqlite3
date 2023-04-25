@@ -774,7 +774,7 @@ contains
         integer                                :: sqlite3_bind_text
 
         if (present(destructor)) then
-            sqlite3_bind_text = sqlite3_bind_text_(stmt, idx, val, len(val), destructor)
+            sqlite3_bind_text = sqlite3_bind_text_(stmt, idx, val, len(val), int(destructor, kind=c_size_t))
             return
         end if
 
