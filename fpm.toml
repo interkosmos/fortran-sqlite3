@@ -13,6 +13,9 @@ link = "sqlite3"
 [library]
 source-dir = "src"
 
+[install]
+library = true
+
 [[test]]
 name = "test_sqlite3"
 source-dir = "test"
