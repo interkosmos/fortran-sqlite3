@@ -29,7 +29,7 @@ contains
         character(len=size(a)) :: copy
         integer(kind=i8)       :: i
 
-        do i = 1, size(a)
+        do i = 1, size(a, kind=i8)
             copy(i:i) = a(i)
         end do
     end function copy

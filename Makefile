@@ -4,9 +4,9 @@
 FC      = gfortran
 AR      = ar
 PREFIX  = /usr/local
-DEBUG   = -Wno-unused-dummy-argument #-ggdb3 -O0
+DEBUG   = #-fcheck=all -fmax-errors=1 -ggdb3 -O0
 
-FFLAGS  = $(DEBUG) -Wall -fmax-errors=1 -fcheck=all
+FFLAGS  = $(DEBUG)
 LDFLAGS = -I$(PREFIX)/include/ -L$(PREFIX)/lib/
 LDLIBS  = -lsqlite3
 ARFLAGS = rcs
