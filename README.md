@@ -157,7 +157,9 @@ fortran-sqlite3 = { git = "https://github.com/interkosmos/fortran-sqlite3.git" }
 ```
 
 ## Compatibility
-Note that the wrapper function `sqlite3_bind_text()` selects destructor type
+The Fortran interfaces to the SQLite functions `sqlite3_bind_text()` and
+`sqlite3_column_text()` support only 8-bit character strings. The Fortran
+wrapper function `sqlite3_bind_text()` selects destructor type
 `SQLITE_TRANSIENT` if argument `destructor` is not passed, in contrast to the
 SQLite default `SQLITE_STATIC`. Therefore, SQLite will make a copy of the given
 value. Otherwise, the passed variable could go out of scope before SQLite was
