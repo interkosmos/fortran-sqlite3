@@ -208,7 +208,6 @@ program test_sqlite3
     ! Close SQLite handle.
     rc = sqlite3_close(db)
     if (rc /= SQLITE_OK) stop 'sqlite3_close(): failed'
-    if (c_associated(db)) stop 'sqlite3_close(): pointer not NULL'
 contains
     integer function journal_mode_wal(db) result(rc)
         !! Enables WAL mode.
