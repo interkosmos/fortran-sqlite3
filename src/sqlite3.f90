@@ -358,53 +358,53 @@ module sqlite3
             integer(kind=c_int)            :: sqlite3_close_
         end function sqlite3_close_
 
-        ! double sqlite3_column_double(sqlite3_stmt *stmt, int icol)
-        function sqlite3_column_double(stmt, icol) bind(c, name='sqlite3_column_double')
+        ! double sqlite3_column_double(sqlite3_stmt *stmt, int idx)
+        function sqlite3_column_double(stmt, idx) bind(c, name='sqlite3_column_double')
             import :: c_double, c_int, c_ptr
             implicit none
             type(c_ptr),         intent(in), value :: stmt
-            integer(kind=c_int), intent(in), value :: icol
+            integer(kind=c_int), intent(in), value :: idx
             real(kind=c_double)                    :: sqlite3_column_double
         end function sqlite3_column_double
 
-        ! int sqlite3_column_int(sqlite3_stmt *stmt, int icol)
-        function sqlite3_column_int(stmt, icol) bind(c, name='sqlite3_column_int')
+        ! int sqlite3_column_int(sqlite3_stmt *stmt, int idx)
+        function sqlite3_column_int(stmt, idx) bind(c, name='sqlite3_column_int')
             import :: c_int, c_ptr
             implicit none
             type(c_ptr),         intent(in), value :: stmt
-            integer(kind=c_int), intent(in), value :: icol
+            integer(kind=c_int), intent(in), value :: idx
             integer(kind=c_int)                    :: sqlite3_column_int
         end function sqlite3_column_int
 
-       ! sqlite3_int64 sqlite3_column_int64(sqlite3_stmt *stmt, int icol)
-        function sqlite3_column_int64(stmt, icol) bind(c, name='sqlite3_column_int64')
+       ! sqlite3_int64 sqlite3_column_int64(sqlite3_stmt *stmt, int idx)
+        function sqlite3_column_int64(stmt, idx) bind(c, name='sqlite3_column_int64')
             import :: c_int, c_int64_t, c_ptr
             implicit none
             type(c_ptr),         intent(in), value :: stmt
-            integer(kind=c_int), intent(in), value :: icol
+            integer(kind=c_int), intent(in), value :: idx
             integer(kind=c_int)                    :: sqlite3_column_int64
         end function sqlite3_column_int64
 
-        ! const unsigned char *sqlite3_column_text(sqlite3_stmt *stmt, int icol)
-        function sqlite3_column_text_(stmt, icol) bind(c, name='sqlite3_column_text')
+        ! const unsigned char *sqlite3_column_text(sqlite3_stmt *stmt, int idx)
+        function sqlite3_column_text_(stmt, idx) bind(c, name='sqlite3_column_text')
             import :: c_int, c_ptr
             implicit none
             type(c_ptr),         intent(in), value :: stmt
-            integer(kind=c_int), intent(in), value :: icol
+            integer(kind=c_int), intent(in), value :: idx
             type(c_ptr)                            :: sqlite3_column_text_
         end function sqlite3_column_text_
 
-        ! int sqlite3_column_type(sqlite3_stmt *stmt, int icol)
-        function sqlite3_column_type(stmt, icol) bind(c, name='sqlite3_column_type')
+        ! int sqlite3_column_type(sqlite3_stmt *stmt, int idx)
+        function sqlite3_column_type(stmt, idx) bind(c, name='sqlite3_column_type')
             import :: c_int, c_ptr
             implicit none
             type(c_ptr),         intent(in), value :: stmt
-            integer(kind=c_int), intent(in), value :: icol
+            integer(kind=c_int), intent(in), value :: idx
             integer(kind=c_int)                    :: sqlite3_column_type
         end function sqlite3_column_type
 
-        ! int sqlite3_config(int option, ...)
-        function sqlite3_config_funptr_ptr_(option, funptr, ptr) bind(c, name='sqlite3_config')
+        ! int sqlite3_config_funptr_ptr_(int option, void *funptr, void *ptr)
+        function sqlite3_config_funptr_ptr_(option, funptr, ptr) bind(c, name='sqlite3_config_funptr_ptr_')
             import :: c_funptr, c_int, c_ptr
             implicit none
             integer(kind=c_int), intent(in), value :: option
@@ -413,8 +413,8 @@ module sqlite3
             integer(kind=c_int)                    :: sqlite3_config_funptr_ptr_
         end function sqlite3_config_funptr_ptr_
 
-        ! int sqlite3_config(int option, ...)
-        function sqlite3_config_int_(option, arg) bind(c, name='sqlite3_config')
+        ! int sqlite3_config_int_(int option, int arg)
+        function sqlite3_config_int_(option, arg) bind(c, name='sqlite3_config_int_')
             import :: c_int
             implicit none
             integer(kind=c_int), intent(in), value :: option
@@ -422,8 +422,8 @@ module sqlite3
             integer(kind=c_int)                    :: sqlite3_config_int_
         end function sqlite3_config_int_
 
-        ! int sqlite3_config(int option, ...)
-        function sqlite3_config_null_(option) bind(c, name='sqlite3_config')
+        ! int sqlite3_config_null_(int option)
+        function sqlite3_config_null_(option) bind(c, name='sqlite3_config_null_')
             import :: c_int
             implicit none
             integer(kind=c_int), intent(in), value :: option
@@ -703,12 +703,12 @@ module sqlite3
             type(c_ptr), intent(in), value :: ptr
         end subroutine sqlite3_free
 
-        ! void sqlite3_log(int iErrCode, const char *zFormat, ...)
-        subroutine sqlite3_log_(ierr_code, zformat) bind(c, name='sqlite3_log')
+        ! void sqlite3_log_(int iErrCode, const char *str)
+        subroutine sqlite3_log_(ierr_code, str) bind(c, name='sqlite3_log_')
             import :: c_char, c_int
             implicit none
             integer(kind=c_int),    intent(in), value :: ierr_code
-            character(kind=c_char), intent(in)        :: zformat
+            character(kind=c_char), intent(in)        :: str
         end subroutine sqlite3_log_
 
         ! void sqlite3_str_append(sqlite3_str *str, const char *zIn, int N)
@@ -789,13 +789,13 @@ contains
         if (sqlite3_close == SQLITE_OK) db = c_null_ptr
     end function sqlite3_close
 
-    function sqlite3_column_text(stmt, icol)
+    function sqlite3_column_text(stmt, idx)
         type(c_ptr), intent(inout)    :: stmt
-        integer,     intent(in)       :: icol
-        type(c_ptr)                   :: ptr
+        integer,     intent(in)       :: idx
         character(len=:), allocatable :: sqlite3_column_text
+        type(c_ptr)                   :: ptr
 
-        ptr = sqlite3_column_text_(stmt, icol)
+        ptr = sqlite3_column_text_(stmt, idx)
         if (.not. c_associated(ptr)) return
         call c_f_str_ptr(ptr, sqlite3_column_text)
     end function sqlite3_column_text
@@ -831,7 +831,7 @@ contains
         type(c_ptr)                   :: ptr
 
         ptr = sqlite3_db_name_(db, n)
-        if (c_associated(ptr)) call c_f_str_ptr(ptr, sqlite3_db_name)
+        call c_f_str_ptr(ptr, sqlite3_db_name)
     end function sqlite3_db_name
 
     function sqlite3_errmsg(db)
@@ -840,7 +840,7 @@ contains
         type(c_ptr)                   :: ptr
 
         ptr = sqlite3_errmsg_(db)
-        if (c_associated(ptr)) call c_f_str_ptr(ptr, sqlite3_errmsg)
+        call c_f_str_ptr(ptr, sqlite3_errmsg)
     end function sqlite3_errmsg
 
     function sqlite3_exec(db, sql, callback, client_data, errmsg)
@@ -853,7 +853,6 @@ contains
         type(c_ptr)                                          :: ptr
 
         sqlite3_exec = sqlite3_exec_(db, sql // c_null_char, callback, client_data, ptr)
-        if (.not. c_associated(ptr)) return
         if (present(errmsg)) call c_f_str_ptr(ptr, errmsg)
     end function sqlite3_exec
 
@@ -870,7 +869,6 @@ contains
         character(len=:), allocatable :: sqlite3_libversion
 
         ptr = sqlite3_libversion_()
-        if (.not. c_associated(ptr)) return
         call c_f_str_ptr(ptr, sqlite3_libversion)
     end function sqlite3_libversion
 
@@ -920,7 +918,6 @@ contains
         character(len=:), allocatable :: sqlite3_sourceid
 
         ptr = sqlite3_sourceid_()
-        if (.not. c_associated(ptr)) return
         call c_f_str_ptr(ptr, sqlite3_sourceid)
     end function sqlite3_sourceid
 
@@ -930,14 +927,13 @@ contains
         character(len=:), allocatable :: sqlite3_str_value
 
         ptr = sqlite3_str_value_(str)
-        if (.not. c_associated(ptr)) return
         call c_f_str_ptr(ptr, sqlite3_str_value)
     end function sqlite3_str_value
 
-    subroutine sqlite3_log(ierr_code, zformat)
+    subroutine sqlite3_log(ierr_code, str)
         integer,          intent(in) :: ierr_code
-        character(len=*), intent(in) :: zformat
+        character(len=*), intent(in) :: str
 
-        call sqlite3_log_(ierr_code, zformat // c_null_char)
+        call sqlite3_log_(ierr_code, str // c_null_char)
     end subroutine sqlite3_log
 end module sqlite3

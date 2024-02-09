@@ -1,13 +1,15 @@
 .POSIX:
 .SUFFIXES:
 
+CC      = gcc
 FC      = gfortran
 AR      = ar
 PREFIX  = /usr/local
 
-DEBUG   = -g -O0 -Wall -fmax-errors=1
+DEBUG   = -g -O0 -Wall
 RELEASE = -O2 -march=native
 
+CFLAGS  = $(RELEASE)
 FFLAGS  = $(RELEASE)
 LDFLAGS = -I$(PREFIX)/include -L$(PREFIX)/lib
 LDLIBS  = -lsqlite3
@@ -21,9 +23,10 @@ all: $(TARGET)
 test: test_sqlite3
 
 $(TARGET): src/sqlite3_util.f90 src/sqlite3.f90
+	$(CC) $(CFLAGS) -c src/sqlite3_macro.c
 	$(FC) $(FFLAGS) -c src/sqlite3_util.f90
 	$(FC) $(FFLAGS) -c src/sqlite3.f90
-	$(AR) $(ARFLAGS) $(TARGET) sqlite3.o sqlite3_util.o
+	$(AR) $(ARFLAGS) $(TARGET) sqlite3.o sqlite3_macro.o sqlite3_util.o
 
 test_sqlite3: $(TARGET) test/test_sqlite3.f90
 	$(FC) $(FFLAGS) $(LDFLAGS) -o test_sqlite3 test/test_sqlite3.f90 $(TARGET) $(LDLIBS)

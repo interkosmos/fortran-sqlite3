@@ -50,7 +50,7 @@ contains
         if (allocated(msg)) deallocate (msg)
     end subroutine error_log_callback
 
-    ! void update_callback(void* udp, int type, const char *db_name, const char *tbl_name, sqlite3_int64 rowid)
+    ! void update_callback(void *udp, int type, const char *db_name, const char *tbl_name, sqlite3_int64 rowid)
     subroutine update_callback(udp, type, db_name, tbl_name, rowid) bind(c)
         !! Callback routine that is called whenever a row is inserted, updated,
         !! or deleted in the database. Has to be registered with
@@ -148,7 +148,7 @@ program test_sqlite3
     ! Create table.
     rc = sqlite3_exec(db, "CREATE TABLE " // DB_TABLE // " (" // &
                           "id     INTEGER PRIMARY KEY," // &
-                          "string VARCHAR(32)," // &
+                          "string TEXT," // &
                           "value  INTEGER)", &
                       c_null_funptr, c_null_ptr, errmsg)
     call print_error(rc, 'sqlite3_exec', errmsg)
@@ -271,10 +271,7 @@ contains
 
                 case (SQLITE_TEXT)
                     buf = sqlite3_column_text(stmt, i)
-                    if (allocated(buf)) then
-                        write (*, '(a12)', advance='no') buf
-                        deallocate (buf)
-                    end if
+                    write (*, '(a12)', advance='no') buf
 
                 case default
                     write (*, '(" not implemented")', advance='no')
