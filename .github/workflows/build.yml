@@ -45,5 +45,5 @@ jobs:
         which gcc
         gcc --version
         make
-        make test
+        make test LDLIBS=/usr/local/lib/libsqlite3.a
         ./test_sqlite3
