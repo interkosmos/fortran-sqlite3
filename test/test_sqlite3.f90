@@ -114,7 +114,7 @@ program test_sqlite3
     if (rc /= SQLITE_OK) stop 'sqlite3_open(): failed'
 
     db_name = sqlite3_db_name(db, 0)
-    if (.not. allocated(db_name)) stop 'sqlite3_db_name(): failed'
+    if (len(db_name) == 0) stop 'sqlite3_db_name(): failed'
     print '("DB name: ", a)', db_name
 
     ! Testing logging.
