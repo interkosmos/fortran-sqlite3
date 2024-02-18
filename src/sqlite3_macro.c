@@ -1,4 +1,10 @@
-/* sqlite3_macro.c */
+/* sqlite3_macro.c
+ *
+ * Wrapper functions for compatibility with variadic SQLite 3 procedures.
+ *
+ * Author:  Philipp Engel
+ * Licence: ISC
+ * */
 #include <sqlite3.h>
 
 #ifdef __cplusplus
