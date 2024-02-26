@@ -16,9 +16,9 @@
 | `sqlite3_bind_double`            |   ✓   |
 | `sqlite3_bind_int`               |   ✓   |
 | `sqlite3_bind_int64`             |   ✓   |
-| `sqlite3_bind_null`              |       |
-| `sqlite3_bind_parameter_count`   |       |
-| `sqlite3_bind_parameter_index`   |       |
+| `sqlite3_bind_null`              |   ✓   |
+| `sqlite3_bind_parameter_count`   |   ✓   |
+| `sqlite3_bind_parameter_index`   |   ✓   |
 | `sqlite3_bind_parameter_name`    |       |
 | `sqlite3_bind_pointer`           |       |
 | `sqlite3_bind_text`              |   ✓   |
@@ -46,19 +46,19 @@
 | `sqlite3_column_blob`            |       |
 | `sqlite3_column_bytes`           |       |
 | `sqlite3_column_bytes16`         |       |
-| `sqlite3_column_count`           |       |
-| `sqlite3_column_database_name`   |       |
+| `sqlite3_column_count`           |   ✓   |
+| `sqlite3_column_database_name`   |   ✓   |
 | `sqlite3_column_database_name16` |       |
 | `sqlite3_column_decltype`        |       |
 | `sqlite3_column_decltype16`      |       |
 | `sqlite3_column_double`          |   ✓   |
 | `sqlite3_column_int`             |   ✓   |
 | `sqlite3_column_int64`           |   ✓   |
-| `sqlite3_column_name`            |       |
+| `sqlite3_column_name`            |   ✓   |
 | `sqlite3_column_name16`          |       |
-| `sqlite3_column_origin_name`     |       |
+| `sqlite3_column_origin_name`     |   ✓   |
 | `sqlite3_column_origin_name16`   |       |
-| `sqlite3_column_table_name`      |       |
+| `sqlite3_column_table_name`      |   ✓   |
 | `sqlite3_column_table_name16`    |       |
 | `sqlite3_column_text`            |   ✓   |
 | `sqlite3_column_text16`          |       |
@@ -100,8 +100,8 @@
 | `sqlite3_errcode`                |   ✓   |
 | `sqlite3_errmsg`                 |   ✓   |
 | `sqlite3_errmsg16`               |       |
-| `sqlite3_error_offset`           |       |
-| `sqlite3_errstr`                 |       |
+| `sqlite3_error_offset`           |   ✓   |
+| `sqlite3_errstr`                 |   ✓   |
 | `sqlite3_exec`                   |   ✓   |
 | `sqlite3_expanded_sql`           |       |
 | `sqlite3_expired`                |       |
@@ -128,7 +128,7 @@
 | `sqlite3_last_insert_rowid`      |   ✓   |
 | `sqlite3_libversion`             |   ✓   |
 | `sqlite3_libversion_number`      |   ✓   |
-| `sqlite3_limit`                  |       |
+| `sqlite3_limit`                  |   ✓   |
 | `sqlite3_load_extension`         |       |
 | `sqlite3_log`                    |   ✓   |
 | `sqlite3_malloc`                 |       |
@@ -158,7 +158,7 @@
 | `sqlite3_prepare16_v2`           |       |
 | `sqlite3_prepare16_v3`           |       |
 | `sqlite3_prepare_v2`             |   ✓   |
-| `sqlite3_prepare_v3`             |       |
+| `sqlite3_prepare_v3`             |   ✓   |
 | `sqlite3_preupdate_blobwrite`    |       |
 | `sqlite3_preupdate_count`        |       |
 | `sqlite3_preupdate_depth`        |       |
@@ -210,13 +210,13 @@
 | `sqlite3_soft_heap_limit`        |       |
 | `sqlite3_soft_heap_limit64`      |       |
 | `sqlite3_sourceid`               |   ✓   |
-| `sqlite3_sql`                    |       |
+| `sqlite3_sql`                    |   ✓   |
 | `sqlite3_status`                 |   ✓   |
 | `sqlite3_status64`               |       |
 | `sqlite3_step`                   |   ✓   |
 | `sqlite3_stmt_busy`              |       |
 | `sqlite3_stmt_isexplain`         |       |
-| `sqlite3_stmt_readonly`          |       |
+| `sqlite3_stmt_readonly`          |   ✓   |
 | `sqlite3_stmt_scanstatus`        |       |
 | `sqlite3_stmt_scanstatus_reset`  |       |
 | `sqlite3_stmt_status`            |       |
