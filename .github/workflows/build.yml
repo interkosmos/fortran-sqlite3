@@ -35,7 +35,7 @@ jobs:
         cd sqlite/
         ./configure
         sudo make install
-        sqlite3 --version
+        /usr/local/bin/sqlite3 --version
 
     - name: Build and Test (Linux)
       if: contains(matrix.os, 'ubuntu')
@@ -45,5 +45,5 @@ jobs:
         which gcc
         gcc --version
         make
-        make test LDLIBS=/usr/local/lib/libsqlite3.a
+        make test LDLIBS="-Wl,-rpath,/usr/local/lib -lsqlite3"
         ./test_sqlite3
