@@ -12,6 +12,12 @@ run:
 # pkg install databases/sqlite3
 ```
 
+On Linux:
+
+```
+# apt-get install sqlite3 libsqlite3-0 libsqlite3-dev
+```
+
 Then, clone the GitHub repository:
 
 ```
@@ -40,8 +46,26 @@ Execute the provided `Makefile`:
 $ make
 ```
 
+Pass the preprocessor flag `-DSQLITE_ENABLE_COLUMN_METADATA=1` to add interface
+bindings to column meta data functions:
+
+```
+$ make PPFLAGS="-DSQLITE_ENABLE_COLUMN_METADATA=1"
+```
+
 You may want to override the default compilers by passing the arguments `CC` (C
 compiler) and `FC` (Fortran compiler).
+
+## Source-Code Documentation
+
+Use [FORD](https://github.com/Fortran-FOSS-Programmers/ford) to generate the
+source-code documentation:
+
+```
+$ ford ford.md
+```
+
+The output files are written to `doc/`.
 
 ## Example
 

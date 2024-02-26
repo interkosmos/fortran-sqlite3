@@ -18,8 +18,9 @@ contains
         integer(kind=c_int), intent(in), value :: argc
         type(c_ptr),         intent(in)        :: argv(*)
         type(c_ptr),         intent(in)        :: cols(*)
-        character(len=:), allocatable          :: buf
-        integer                                :: i
+
+        character(len=:), allocatable :: buf
+        integer                       :: i
 
         exec_callback = 1 ! No more rows on error.
 
@@ -41,7 +42,8 @@ contains
         type(c_ptr),         intent(in), value :: udp
         integer(kind=c_int), intent(in), value :: err_code
         type(c_ptr),         intent(in), value :: err_msg
-        character(len=:), allocatable          :: msg
+
+        character(len=:), allocatable :: msg
 
         call c_f_str_ptr(err_msg, msg)
         print '(a)', repeat('-', 64)
@@ -60,7 +62,8 @@ contains
         type(c_ptr),             intent(in), value :: db_name
         type(c_ptr),             intent(in), value :: tbl_name
         integer(kind=c_int64_t), intent(in), value :: rowid
-        character(len=:), allocatable              :: db_str, tbl_str
+
+        character(len=:), allocatable :: db_str, tbl_str
 
         call c_f_str_ptr(db_name, db_str)
         call c_f_str_ptr(tbl_name, tbl_str)
@@ -89,15 +92,16 @@ program test_sqlite3
     use :: sqlite3
     use :: callbacks
     implicit none (type, external)
-    character(len=*), parameter :: DB_FILE  = 'test.db'
+    character(len=*), parameter :: DB_FILE  = 'test.sqlite'
     character(len=*), parameter :: DB_TABLE = 'test_table'
 
     character(len=:), allocatable :: db_name ! Database name.
     character(len=:), allocatable :: errmsg  ! Error message.
-    integer                       :: rc      ! Return code.
-    type(c_ptr)                   :: db      ! SQLite database.
-    type(c_ptr)                   :: stmt    ! SQLite statement.
-    type(c_ptr)                   :: udp     ! User-data pointer.
+
+    integer     :: rc   ! Return code.
+    type(c_ptr) :: db   ! SQLite database.
+    type(c_ptr) :: stmt ! SQLite statement.
+    type(c_ptr) :: udp  ! User-data pointer.
 
     ! Set configuration to single thread.
     rc = sqlite3_config(SQLITE_CONFIG_SINGLETHREAD)
@@ -211,10 +215,11 @@ program test_sqlite3
 contains
     integer function journal_mode_wal(db) result(rc)
         !! Enables WAL mode.
-        type(c_ptr), intent(inout)         :: db
-        character(len=:), allocatable      :: buf
-        integer                            :: err
-        type(c_ptr)                        :: stmt
+        type(c_ptr), intent(inout) :: db
+
+        character(len=:), allocatable :: buf
+        integer                       :: err
+        type(c_ptr)                   :: stmt
 
         rc = -1
 
@@ -252,11 +257,12 @@ contains
     end subroutine print_error
 
     subroutine print_values(stmt, ncols)
-        type(c_ptr), intent(inout)     :: stmt
-        integer,     intent(in)        :: ncols
-        integer                        :: col_type
-        integer                        :: i
-        character(len=:), allocatable  :: buf
+        type(c_ptr), intent(inout) :: stmt
+        integer,     intent(in)    :: ncols
+
+        integer                       :: col_type
+        integer                       :: i
+        character(len=:), allocatable :: buf
 
         do i = 0, ncols - 1
             col_type = sqlite3_column_type(stmt, i)

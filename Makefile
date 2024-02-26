@@ -11,10 +11,13 @@ RELEASE = -O2 -march=native
 
 CFLAGS  = $(RELEASE)
 FFLAGS  = $(RELEASE)
+PPFLAGS = -DSQLITE_ENABLE_COLUMN_METADATA=0
 LDFLAGS = -I$(PREFIX)/include -L$(PREFIX)/lib
 LDLIBS  = -lsqlite3
 ARFLAGS = rcs
 TARGET  = libfortran-sqlite3.a
+SRC     = src/sqlite3_macro.c src/sqlite3.F90 src/sqlite3_util.f90
+OBJ     = sqlite3.o sqlite3_macro.o sqlite3_util.o
 
 .PHONY: all clean test
 
@@ -22,11 +25,11 @@ all: $(TARGET)
 
 test: test_sqlite3
 
-$(TARGET): src/sqlite3_util.f90 src/sqlite3.f90
+$(TARGET): $(SRC)
 	$(CC) $(CFLAGS) -c src/sqlite3_macro.c
 	$(FC) $(FFLAGS) -c src/sqlite3_util.f90
-	$(FC) $(FFLAGS) -c src/sqlite3.f90
-	$(AR) $(ARFLAGS) $(TARGET) sqlite3.o sqlite3_macro.o sqlite3_util.o
+	$(FC) $(FFLAGS) $(PPFLAGS) -c src/sqlite3.F90
+	$(AR) $(ARFLAGS) $(TARGET) $(OBJ)
 
 test_sqlite3: $(TARGET) test/test_sqlite3.f90
 	$(FC) $(FFLAGS) $(LDFLAGS) -o test_sqlite3 test/test_sqlite3.f90 $(TARGET) $(LDLIBS)
@@ -36,3 +39,4 @@ clean:
 	if [ `ls -1 *.o 2>/dev/null | wc -l` -gt 0 ]; then rm *.o; fi
 	if [ -e $(TARGET) ]; then rm $(TARGET); fi
 	if [ -e test_sqlite3 ]; then rm test_sqlite3; fi
+	if [ -e test.sqlite ]; then rm test.sqlite; fi
