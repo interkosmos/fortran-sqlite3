@@ -192,6 +192,8 @@ module sqlite3
     public :: sqlite3_clear_bindings
     public :: sqlite3_close
     public :: sqlite3_close_
+    public :: sqlite3_close_v2
+    public :: sqlite3_close_v2_
     public :: sqlite3_column_count
     public :: sqlite3_column_double
     public :: sqlite3_column_int
@@ -420,6 +422,14 @@ module sqlite3
             type(c_ptr), intent(in), value :: db
             integer(kind=c_int)            :: sqlite3_close_
         end function sqlite3_close_
+
+        ! int sqlite3_close_v2(sqlite3 *db)
+        function sqlite3_close_v2_(db) bind(c, name='sqlite3_close_v2')
+            import :: c_int, c_ptr
+            implicit none
+            type(c_ptr), intent(in), value :: db
+            integer(kind=c_int)            :: sqlite3_close_v2_
+        end function sqlite3_close_v2_
 
         ! int sqlite3_column_count(sqlite3_stmt *stmt)
         function sqlite3_column_count(stmt) bind(c, name='sqlite3_column_count')
@@ -956,6 +966,14 @@ contains
         sqlite3_close = sqlite3_close_(db)
         if (sqlite3_close == SQLITE_OK) db = c_null_ptr
     end function sqlite3_close
+
+    function sqlite3_close_v2(db)
+        type(c_ptr), intent(inout) :: db
+        integer                    :: sqlite3_close_v2
+
+        sqlite3_close_v2 = sqlite3_close_v2_(db)
+        if (sqlite3_close_v2 == SQLITE_OK) db = c_null_ptr
+    end function sqlite3_close_v2
 
     function sqlite3_column_name(stmt, idx)
         type(c_ptr), intent(inout)    :: stmt

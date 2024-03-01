@@ -40,7 +40,7 @@
 | `sqlite3_changes64`              |       |
 | `sqlite3_clear_bindings`         |   ✓   |
 | `sqlite3_close`                  |   ✓   |
-| `sqlite3_close_v2`               |       |
+| `sqlite3_close_v2`               |   ✓   |
 | `sqlite3_collation_needed`       |       |
 | `sqlite3_collation_needed16`     |       |
 | `sqlite3_column_blob`            |       |

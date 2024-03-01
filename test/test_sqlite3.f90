@@ -114,8 +114,12 @@ program test_sqlite3
     print '("SQLite source ID: ", a)', sqlite3_sourceid()
 
     ! Open SQLite database.
-    rc = sqlite3_open(DB_FILE, db)
-    if (rc /= SQLITE_OK) stop 'sqlite3_open(): failed'
+    rc = sqlite3_open_v2(DB_FILE, db, ior(SQLITE_OPEN_READWRITE, SQLITE_OPEN_CREATE))
+
+    if (rc /= SQLITE_OK) then
+        print '("Error ", i0, ": ", a)', sqlite3_errcode(db), sqlite3_errmsg(db)
+        stop 'sqlite3_open_v2(): failed'
+    end if
 
     db_name = sqlite3_db_name(db, 0)
     if (len(db_name) == 0) stop 'sqlite3_db_name(): failed'
@@ -210,7 +214,7 @@ program test_sqlite3
     call print_error(rc, 'sqlite3_exec', errmsg)
 
     ! Close SQLite handle.
-    rc = sqlite3_close(db)
+    rc = sqlite3_close_v2(db)
     if (rc /= SQLITE_OK) stop 'sqlite3_close(): failed'
 contains
     integer function journal_mode_wal(db) result(rc)
