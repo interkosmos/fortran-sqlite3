@@ -1,5 +1,7 @@
 # fortran-sqlite3
 
+[![Build and Test](https://github.com/interkosmos/fortran-sqlite3/actions/workflows/build.yml/badge.svg)](https://github.com/interkosmos/fortran-sqlite3/actions/workflows/build.yml)
+
 A work-in-progress collection of Fortran 2018 interface bindings to SQLite 3
 (≥ 3.39.0). See [COVERAGE](COVERAGE.md) for an overview of bound functions.
 
