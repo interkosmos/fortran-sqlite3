@@ -20,6 +20,16 @@ On Linux:
 # apt-get install sqlite3 libsqlite3-0 libsqlite3-dev
 ```
 
+Or, build SQLite 3 from source:
+
+```
+$ git clone --depth 1 https://github.com/sqlite/sqlite.git
+$ cd sqlite/
+$ ./configure
+$ make
+$ sudo make install
+```
+
 Then, clone the GitHub repository:
 
 ```
