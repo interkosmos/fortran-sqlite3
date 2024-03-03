@@ -28,7 +28,7 @@ $ cd fortran-sqlite3/
 Either build the library with `fpm` or `make`. Once compiled, link your Fortran
 application against `libfortran-sqlite3.a` and `-lsqlite3`.
 
-### fpm
+### Fortran Package Manager
 
 Simply execute the Fortran Package Manager:
 
@@ -54,7 +54,12 @@ $ make PPFLAGS="-DSQLITE_ENABLE_COLUMN_METADATA=1"
 ```
 
 You may want to override the default compilers by passing the arguments `CC` (C
-compiler) and `FC` (Fortran compiler).
+compiler) and `FC` (Fortran compiler). To install the library and the module
+files system-wide, for example, to `/opt`, run:
+
+```
+$ make install PREFIX=/opt
+```
 
 ## Source-Code Documentation
 
@@ -161,15 +166,16 @@ contains
 end program example
 ```
 
-Compile, link, and run the example with:
+If the library is installed to `/opt`, then compile, link, and run the example
+with:
 
 ```
-$ gfortran -o example example.f90 libfortran-sqlite3.a -lsqlite3
+$ gfortran -I/opt/include/libfortran-sqlite3 -o example example.f90 /opt/lib/libfortran-sqlite3.a -lsqlite3
 $ ./example
            1         one       12345
 ```
 
-## fpm
+## Fortran Package Manager
 
 You can add *fortran-sqlite3* as an [fpm](https://github.com/fortran-lang/fpm)
 dependency to your `fpm.toml`:

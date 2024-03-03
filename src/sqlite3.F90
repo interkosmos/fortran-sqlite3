@@ -6,7 +6,6 @@
 ! Licence: ISC
 module sqlite3
     use, intrinsic :: iso_c_binding
-    use, intrinsic :: iso_fortran_env, only: i8 => int64
     use :: sqlite3_util
     implicit none (type, external)
     private
@@ -945,14 +944,14 @@ contains
     function sqlite3_bind_text(stmt, idx, val, destructor)
         !! Binds text to column. This wrapper passes destructor
         !! `SQLITE_TRANSIENT` by default!
-        type(c_ptr),      intent(inout)        :: stmt
-        integer,          intent(in)           :: idx
-        character(len=*), intent(in)           :: val
-        integer(kind=i8), intent(in), optional :: destructor
-        integer                                :: sqlite3_bind_text
+        type(c_ptr),            intent(inout)        :: stmt
+        integer,                intent(in)           :: idx
+        character(len=*),       intent(in)           :: val
+        integer(kind=c_size_t), intent(in), optional :: destructor
+        integer                                      :: sqlite3_bind_text
 
         if (present(destructor)) then
-            sqlite3_bind_text = sqlite3_bind_text_(stmt, idx, val, len(val), int(destructor, kind=c_size_t))
+            sqlite3_bind_text = sqlite3_bind_text_(stmt, idx, val, len(val), destructor)
             return
         end if
 
