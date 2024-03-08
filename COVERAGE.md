@@ -44,7 +44,7 @@
 | `sqlite3_collation_needed`       |       |
 | `sqlite3_collation_needed16`     |       |
 | `sqlite3_column_blob`            |       |
-| `sqlite3_column_bytes`           |       |
+| `sqlite3_column_bytes`           |   ✓   |
 | `sqlite3_column_bytes16`         |       |
 | `sqlite3_column_count`           |   ✓   |
 | `sqlite3_column_database_name`   |   ✓   |

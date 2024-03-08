@@ -265,7 +265,7 @@ contains
         integer,     intent(in)    :: ncols
 
         integer                       :: col_type
-        integer                       :: i
+        integer                       :: i, n
         character(len=:), allocatable :: buf
 
         do i = 0, ncols - 1
@@ -279,8 +279,9 @@ contains
                     write (*, '(f0.8)', advance='no') sqlite3_column_double(stmt, i)
 
                 case (SQLITE_TEXT)
+                    n   = sqlite3_column_bytes(stmt, i)
                     buf = sqlite3_column_text(stmt, i)
-                    write (*, '(a12)', advance='no') buf
+                    write (*, '(a12, " (", i0, ")")', advance='no') buf, n
 
                 case default
                     write (*, '(" not implemented")', advance='no')
