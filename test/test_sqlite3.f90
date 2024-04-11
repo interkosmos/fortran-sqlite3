@@ -216,6 +216,10 @@ program test_sqlite3
     ! Close SQLite handle.
     rc = sqlite3_close_v2(db)
     if (rc /= SQLITE_OK) stop 'sqlite3_close(): failed'
+
+    if (c_associated(db)) then
+        print '("warning: database handle still associated (this is probably a compiler bug)")'
+    end if
 contains
     integer function journal_mode_wal(db) result(rc)
         !! Enables WAL mode.
