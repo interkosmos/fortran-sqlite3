@@ -10,7 +10,15 @@ module sqlite3
     implicit none (type, external)
     private
 
-    integer, parameter :: c_unsigned_int = c_int
+#if defined (__flang__)
+
+    public :: c_unsigned
+
+#else
+
+    integer, parameter :: c_unsigned = c_int
+
+#endif
 
     integer(kind=c_int), parameter, public :: SQLITE_INTEGER = 1
     integer(kind=c_int), parameter, public :: SQLITE_FLOAT   = 2
@@ -750,15 +758,15 @@ module sqlite3
 
         ! int sqlite3_prepare_v3(sqlite3 *db, const char *sql, int nbyte, unsigned int prepFlags, sqlite3_stmt **stmt, const char **tail)
         function sqlite3_prepare_v3_(db, sql, nbyte, prep_flags, stmt, tail) bind(c, name='sqlite3_prepare_v3')
-            import :: c_char, c_int, c_ptr, c_unsigned_int
+            import :: c_char, c_int, c_ptr, c_unsigned
             implicit none
-            type(c_ptr),                  intent(in), value :: db
-            character(kind=c_char),       intent(in)        :: sql
-            integer(kind=c_int),          intent(in), value :: nbyte
-            integer(kind=c_unsigned_int), intent(in), value :: prep_flags
-            type(c_ptr),                  intent(inout)     :: stmt
-            type(c_ptr),                  intent(in)        :: tail
-            integer(kind=c_int)                             :: sqlite3_prepare_v3_
+            type(c_ptr),              intent(in), value :: db
+            character(kind=c_char),   intent(in)        :: sql
+            integer(kind=c_int),      intent(in), value :: nbyte
+            integer(kind=c_unsigned), intent(in), value :: prep_flags
+            type(c_ptr),              intent(inout)     :: stmt
+            type(c_ptr),              intent(in)        :: tail
+            integer(kind=c_int)                         :: sqlite3_prepare_v3_
         end function sqlite3_prepare_v3_
 
         ! int sqlite3_reset(sqlite3_stmt *stmt)
@@ -950,6 +958,7 @@ module sqlite3
     end interface
 
 #if SQLITE_ENABLE_COLUMN_METADATA
+
     interface
         ! const char *sqlite3_column_database_name(sqlite3_stmt *stmt, int icol)
         function sqlite3_column_database_name_(stmt, icol) bind(c, name='sqlite3_column_database_name')
@@ -978,6 +987,7 @@ module sqlite3
             type(c_ptr)                            :: sqlite3_column_table_name_
         end function sqlite3_column_table_name_
     end interface
+
 #endif
 contains
     type(c_ptr) function sqlite3_backup_init(dest, dest_name, source, source_name) result(ptr)
@@ -1250,6 +1260,7 @@ contains
     end subroutine sqlite3_log
 
 #if SQLITE_ENABLE_COLUMN_METADATA
+
     function sqlite3_column_database_name(stmt, icol) result(name)
         type(c_ptr), intent(inout)    :: stmt
         integer,     intent(in)       :: icol
@@ -1279,5 +1290,6 @@ contains
         ptr = sqlite3_column_table_name_(stmt, icol)
         call c_f_str_ptr(ptr, name)
     end function sqlite3_column_table_name
+
 #endif
 end module sqlite3

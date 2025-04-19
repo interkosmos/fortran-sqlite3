@@ -9,10 +9,10 @@ PREFIX  = /usr/local
 DEBUG   = -g -O0 -Wall
 RELEASE = -O2 -march=native
 
-CFLAGS  = $(RELEASE)
+CFLAGS  = $(RELEASE) -I$(PREFIX)/include
 FFLAGS  = $(RELEASE)
 PPFLAGS = -DSQLITE_ENABLE_COLUMN_METADATA=0
-LDFLAGS = -I$(PREFIX)/include -L$(PREFIX)/lib
+LDFLAGS = -L$(PREFIX)/lib
 LDLIBS  = -lsqlite3
 ARFLAGS = rcs
 INCDIR  = $(PREFIX)/include/libfortran-sqlite3

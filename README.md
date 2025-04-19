@@ -37,8 +37,8 @@ $ git clone --depth 1 https://github.com/interkosmos/fortran-sqlite3
 $ cd fortran-sqlite3/
 ```
 
-Either build the library with `fpm` or `make`. Once compiled, link your Fortran
-application against `libfortran-sqlite3.a` and `-lsqlite3`.
+Either build the library with _fpm(1)_ or _make(1)_. Once compiled, link your
+Fortran application against `libfortran-sqlite3.a` and `-lsqlite3`.
 
 ### Fortran Package Manager
 
@@ -50,7 +50,7 @@ $ fpm build --profile release
 
 The output files are written to `build/`.
 
-### make
+### Make
 
 Execute the provided `Makefile`:
 
@@ -178,8 +178,8 @@ contains
 end program example
 ```
 
-If the library is installed to `/opt`, then compile, link, and run the example
-with:
+If the library has been installed to `/opt`, then compile, link, and run the
+example with:
 
 ```
 $ gfortran -I/opt/include/libfortran-sqlite3 -o example example.f90 /opt/lib/libfortran-sqlite3.a -lsqlite3
