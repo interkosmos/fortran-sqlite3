@@ -196,6 +196,8 @@ module sqlite3
     public :: sqlite3_bind_text_
     public :: sqlite3_busy_handler
     public :: sqlite3_busy_timeout
+    public :: sqlite3_changes
+    public :: sqlite3_changes64
     public :: sqlite3_clear_bindings
     public :: sqlite3_close
     public :: sqlite3_close_
@@ -430,6 +432,22 @@ module sqlite3
             integer(kind=c_int), intent(in), value :: ms
             integer(kind=c_int)                    :: sqlite3_busy_timeout
         end function sqlite3_busy_timeout
+
+        ! int sqlite3_changes(sqlite3 *db)
+        function sqlite3_changes(db) bind(c, name='sqlite3_changes')
+            import :: c_int, c_ptr
+            implicit none
+            type(c_ptr), intent(in), value :: db
+            integer(kind=c_int)            :: sqlite3_changes
+        end function sqlite3_changes
+
+        ! sqlite3_int64 sqlite3_changes64(sqlite3 *db)
+        function sqlite3_changes64(db) bind(c, name='sqlite3_changes64')
+            import :: c_int64_t, c_ptr
+            implicit none
+            type(c_ptr), intent(in), value :: db
+            integer(kind=c_int64_t)        :: sqlite3_changes64
+        end function sqlite3_changes64
 
         ! int sqlite3_clear_bindings(sqlite3_stmt *stmt)
         function sqlite3_clear_bindings(stmt) bind(c, name='sqlite3_clear_bindings')

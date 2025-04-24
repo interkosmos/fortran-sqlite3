@@ -36,8 +36,8 @@
 | `sqlite3_busy_handler`           |   ✓   |
 | `sqlite3_busy_timeout`           |   ✓   |
 | `sqlite3_cancel_auto_extension`  |       |
-| `sqlite3_changes`                |       |
-| `sqlite3_changes64`              |       |
+| `sqlite3_changes`                |   ✓   |
+| `sqlite3_changes64`              |   ✓   |
 | `sqlite3_clear_bindings`         |   ✓   |
 | `sqlite3_close`                  |   ✓   |
 | `sqlite3_close_v2`               |   ✓   |
