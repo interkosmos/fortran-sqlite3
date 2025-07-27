@@ -10,7 +10,7 @@ module sqlite3
     implicit none (type, external)
     private
 
-#if defined (__flang__)
+#if defined (__flang__) || (defined (__GFORTRAN__) && __GNUC__ > 15) || (defined (__GFORTRAN__) && __GNUC__ == 15 && __GNUC_MINOR__ >= 2)
 
     public :: c_unsigned
 
