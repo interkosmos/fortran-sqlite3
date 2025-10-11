@@ -102,7 +102,6 @@ inserts some values, then reads them back in, and prints them to console.
 ```fortran
 ! example.f90
 program example
-    use, intrinsic :: iso_c_binding
     use :: sqlite3
     implicit none (type, external)
 
