@@ -10,15 +10,6 @@ module sqlite3_util
     implicit none (type, external)
     private
 
-    interface
-        function c_strlen(str) bind(c, name='strlen')
-            import :: c_ptr, c_size_t
-            implicit none
-            type(c_ptr), intent(in), value :: str
-            integer(kind=c_size_t)         :: c_strlen
-        end function c_strlen
-    end interface
-
     public :: c_f_str_ptr
 contains
     subroutine c_f_str_ptr(c_str, f_str)
@@ -28,6 +19,15 @@ contains
 
         character(kind=c_char), pointer :: ptrs(:)
         integer(kind=c_size_t)          :: i, sz
+
+        interface
+            function c_strlen(str) bind(c, name='strlen')
+                import :: c_ptr, c_size_t
+                implicit none
+                type(c_ptr), intent(in), value :: str
+                integer(kind=c_size_t)         :: c_strlen
+            end function c_strlen
+        end interface
 
         copy_block: block
             if (.not. c_associated(c_str)) exit copy_block

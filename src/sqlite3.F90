@@ -5,12 +5,19 @@
 ! Author:  Philipp Engel
 ! Licence: ISC
 module sqlite3
-    use, intrinsic :: iso_c_binding
+    use, intrinsic :: iso_c_binding, only: c_associated, c_funloc, &
+                                           c_char, c_double, c_int, c_int64_t, c_size_t, &
+                                           c_funptr, c_ptr, c_null_char, c_null_funptr, c_null_ptr
+#if HAS_UNSIGNED
+
+    use, intrinsic :: iso_c_binding, only: c_unsigned
+
+#endif
     use :: sqlite3_util
     implicit none (type, external)
     private
 
-#if defined (__flang__) || (defined (__GFORTRAN__) && __GNUC__ > 15) || (defined (__GFORTRAN__) && __GNUC__ == 15 && __GNUC_MINOR__ >= 2)
+#if HAS_UNSIGNED
 
     public :: c_unsigned
 
@@ -19,6 +26,20 @@ module sqlite3
     integer, parameter :: c_unsigned = c_int
 
 #endif
+
+    public :: c_associated
+    public :: c_funloc
+
+    public :: c_char
+    public :: c_double
+    public :: c_int
+    public :: c_int64_t
+    public :: c_size_t
+    public :: c_funptr
+    public :: c_ptr
+    public :: c_null_char
+    public :: c_null_funptr
+    public :: c_null_ptr
 
     integer(kind=c_int), parameter, public :: SQLITE_INTEGER = 1
     integer(kind=c_int), parameter, public :: SQLITE_FLOAT   = 2

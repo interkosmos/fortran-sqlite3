@@ -1,6 +1,5 @@
 ! test_sqlite3.f90
 module callbacks
-    use, intrinsic :: iso_c_binding
     use :: sqlite3
     use :: sqlite3_util
     implicit none
@@ -88,7 +87,6 @@ contains
 end module callbacks
 
 program test_sqlite3
-    use, intrinsic :: iso_c_binding
     use :: sqlite3
     use :: callbacks
     implicit none (type, external)
