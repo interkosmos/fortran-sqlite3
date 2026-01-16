@@ -4,10 +4,11 @@
 CC      = gcc
 FC      = gfortran
 AR      = ar
+RM      = /bin/rm
 PREFIX  = /usr/local
 
 DEBUG   = -g -O0 -Wall
-RELEASE = -O2 -march=native
+RELEASE = -O2
 
 CFLAGS  = $(RELEASE) -I$(PREFIX)/include
 FFLAGS  = $(RELEASE)
@@ -44,8 +45,8 @@ test_sqlite3: $(TARGET) test/test_sqlite3.f90
 	$(FC) $(FFLAGS) $(LDFLAGS) -o test_sqlite3 test/test_sqlite3.f90 $(TARGET) $(LDLIBS)
 
 clean:
-	if [ `ls -1 *.mod 2>/dev/null | wc -l` -gt 0 ]; then rm *.mod; fi
-	if [ `ls -1 *.o 2>/dev/null | wc -l` -gt 0 ]; then rm *.o; fi
-	if [ -e $(TARGET) ]; then rm $(TARGET); fi
-	if [ -e test_sqlite3 ]; then rm test_sqlite3; fi
-	if [ -e test.sqlite ]; then rm test.sqlite; fi
+	$(RM) -rf *.mod
+	$(RM) -rf *.o
+	$(RM) -rf $(TARGET)
+	$(RM) -rf test_sqlite3
+	$(RM) -rf test.sqlite
