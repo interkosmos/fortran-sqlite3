@@ -1,6 +1,6 @@
 # fortran-sqlite3
 
-[CI](https://github.com/interkosmos/fortran-sqlite3/actions/workflows/ci.yml/badge.svg)
+![CI](https://img.shields.io/github/actions/workflow/status/interkosmos/fortran-sqlite3/ci.yml)
 
 A work-in-progress collection of Fortran 2018 interface bindings to SQLite 3
 (≥ 3.39.0). See [COVERAGE](COVERAGE.md) for an overview of bound functions.
