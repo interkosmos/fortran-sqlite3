@@ -1,6 +1,6 @@
 # fortran-sqlite3
 
-[![Build and Test](https://github.com/interkosmos/fortran-sqlite3/actions/workflows/build.yml/badge.svg)](https://github.com/interkosmos/fortran-sqlite3/actions/workflows/build.yml)
+[CI](https://github.com/interkosmos/fortran-sqlite3/actions/workflows/ci.yml/badge.svg)
 
 A work-in-progress collection of Fortran 2018 interface bindings to SQLite 3
 (≥ 3.39.0). See [COVERAGE](COVERAGE.md) for an overview of bound functions.
@@ -102,13 +102,14 @@ inserts some values, then reads them back in, and prints them to console.
 ```fortran
 ! example.f90
 program example
+    use, intrinsic :: iso_c_binding
     use :: sqlite3
     implicit none (type, external)
 
-    character(len=:), allocatable :: errmsg
-    integer                       :: rc
-    type(c_ptr)                   :: db
-    type(c_ptr)                   :: stmt
+    character(:), allocatable :: errmsg
+    integer                   :: rc
+    type(c_ptr)               :: db
+    type(c_ptr)               :: stmt
 
     ! Open SQLite database.
     rc = sqlite3_open('example.sqlite', db)
@@ -151,8 +152,8 @@ contains
     subroutine print_values(stmt, ncols)
         type(c_ptr), intent(inout) :: stmt
         integer,     intent(in)    :: ncols
-        integer                    :: col_type
-        integer                    :: i
+
+        integer :: col_type, i
 
         do i = 0, ncols - 1
             col_type = sqlite3_column_type(stmt, i)
@@ -193,7 +194,7 @@ dependency to your `fpm.toml`:
 
 ```toml
 [dependencies]
-fortran-sqlite3 = { git = "https://github.com/interkosmos/fortran-sqlite3.git" }
+fortran-sqlite3 = { git = "https://github.com/interkosmos/fortran-sqlite3" }
 ```
 
 ## Compatibility

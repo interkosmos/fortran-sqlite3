@@ -10,16 +10,16 @@ module callbacks
     public :: update_callback
 contains
     ! int callback(void *client_data, int argc, char **argv, char **cols)
-    integer(kind=c_int) function exec_callback(client_data, argc, argv, cols) bind(c)
+    integer(c_int) function exec_callback(client_data, argc, argv, cols) bind(c)
         !! Callback function for `sqlite3_exec()` that just prints the passed
         !! row of the SQL query.
-        type(c_ptr),         intent(in), value :: client_data
-        integer(kind=c_int), intent(in), value :: argc
-        type(c_ptr),         intent(in)        :: argv(*)
-        type(c_ptr),         intent(in)        :: cols(*)
+        type(c_ptr),    intent(in), value :: client_data
+        integer(c_int), intent(in), value :: argc
+        type(c_ptr),    intent(in)        :: argv(*)
+        type(c_ptr),    intent(in)        :: cols(*)
 
-        character(len=:), allocatable :: buf
-        integer                       :: i
+        character(:), allocatable :: buf
+        integer                   :: i
 
         exec_callback = 1 ! No more rows on error.
 
@@ -30,7 +30,6 @@ contains
             if (.not. c_associated(argv(i))) cycle
             call c_f_str_ptr(argv(i), buf)
             print '("VALUE: ", a)', buf
-            buf = ' '
         end do
 
         exec_callback = 0
@@ -38,17 +37,16 @@ contains
 
     ! void error_log_callback(void *udp, int err_code, const char *err_msg)
     subroutine error_log_callback(udp, err_code, err_msg) bind(c)
-        type(c_ptr),         intent(in), value :: udp
-        integer(kind=c_int), intent(in), value :: err_code
-        type(c_ptr),         intent(in), value :: err_msg
+        type(c_ptr),    intent(in), value :: udp
+        integer(c_int), intent(in), value :: err_code
+        type(c_ptr),    intent(in), value :: err_msg
 
-        character(len=:), allocatable :: msg
+        character(:), allocatable :: msg
 
         call c_f_str_ptr(err_msg, msg)
         print '(a)', repeat('-', 64)
         print '("ERROR ", i0, ": ", a)', err_code, msg
         print '(a)', repeat('-', 64)
-        if (allocated(msg)) deallocate (msg)
     end subroutine error_log_callback
 
     ! void update_callback(void *udp, int type, const char *db_name, const char *tbl_name, sqlite3_int64 rowid)
@@ -56,15 +54,15 @@ contains
         !! Callback routine that is called whenever a row is inserted, updated,
         !! or deleted in the database. Has to be registered with
         !! `sqlite3_update_hook()`.
-        type(c_ptr),             intent(in), value :: udp
-        integer(kind=c_int),     intent(in), value :: type
-        type(c_ptr),             intent(in), value :: db_name
-        type(c_ptr),             intent(in), value :: tbl_name
-        integer(kind=c_int64_t), intent(in), value :: rowid
+        type(c_ptr),        intent(in), value :: udp
+        integer(c_int),     intent(in), value :: type
+        type(c_ptr),        intent(in), value :: db_name
+        type(c_ptr),        intent(in), value :: tbl_name
+        integer(c_int64_t), intent(in), value :: rowid
 
-        character(len=:), allocatable :: db_str, tbl_str
+        character(:), allocatable :: db_str, tbl_str
 
-        call c_f_str_ptr(db_name, db_str)
+        call c_f_str_ptr(db_name,  db_str)
         call c_f_str_ptr(tbl_name, tbl_str)
 
         select case (type)
@@ -80,21 +78,20 @@ contains
                 print '("Row ", i0, " in table ", a, " of database ", a, " has been deleted!")', &
                     rowid, tbl_str, db_str
         end select
-
-        if (allocated(db_str)) deallocate (db_str)
-        if (allocated(tbl_str)) deallocate (tbl_str)
     end subroutine update_callback
 end module callbacks
 
 program test_sqlite3
+    use, intrinsic :: iso_c_binding
     use :: sqlite3
     use :: callbacks
     implicit none (type, external)
-    character(len=*), parameter :: DB_FILE  = 'test.sqlite'
-    character(len=*), parameter :: DB_TABLE = 'test_table'
 
-    character(len=:), allocatable :: db_name ! Database name.
-    character(len=:), allocatable :: errmsg  ! Error message.
+    character(*), parameter :: DB_FILE  = 'test.sqlite'
+    character(*), parameter :: DB_TABLE = 'test_table'
+
+    character(:), allocatable :: db_name ! Database name.
+    character(:), allocatable :: errmsg  ! Error message.
 
     integer     :: rc   ! Return code.
     type(c_ptr) :: db   ! SQLite database.
@@ -103,10 +100,10 @@ program test_sqlite3
 
     ! Set configuration to single thread.
     rc = sqlite3_config(SQLITE_CONFIG_SINGLETHREAD)
-    if (rc /= SQLITE_OK) stop 'sqlite3_config(): failed'
+    call print_error(rc, 'sqlite3_config')
 
     rc = sqlite3_config(SQLITE_CONFIG_LOG, c_funloc(error_log_callback), c_null_ptr)
-    if (rc /= SQLITE_OK) stop 'sqlite3_config(): failed'
+    call print_error(rc, 'sqlite3_config')
 
     print '("SQLite library version: ", a)', sqlite3_libversion()
     print '("SQLite source ID: ", a)', sqlite3_sourceid()
@@ -116,7 +113,8 @@ program test_sqlite3
 
     if (rc /= SQLITE_OK) then
         print '("Error ", i0, ": ", a)', sqlite3_errcode(db), sqlite3_errmsg(db)
-        stop 'sqlite3_open_v2(): failed'
+        call print_error(rc, 'sqlite3_open_v2')
+        stop
     end if
 
     db_name = sqlite3_db_name(db, 0)
@@ -132,100 +130,79 @@ program test_sqlite3
     if (rc /= SQLITE_OK) print '("Unable to set WAL mode")'
 
     ! Register update hook.
-    udp = sqlite3_update_hook(db, c_funloc(update_callback), c_null_ptr)
+    udp = sqlite3_update_hook(db, update_callback, c_null_ptr)
 
     ! Query SQLite version.
     rc = sqlite3_prepare(db, "SELECT SQLITE_VERSION()", stmt)
-    if (rc /= SQLITE_OK) print '("sqlite3_prepare(): failed")'
+    call print_error(rc, 'sqlite3_prepare')
 
     if (rc /= SQLITE_OK) then
         print '("Failed to fetch data: ", a)', sqlite3_errmsg(db)
     else
         rc = sqlite3_step(stmt)
-
-        if (rc == SQLITE_ROW) then
-            print '("SQLite version from query: ", a)', sqlite3_column_text(stmt, 0)
-        end if
+        if (rc == SQLITE_ROW) print '("SQLite version from query: ", a)', sqlite3_column_text(stmt, 0)
     end if
 
     rc = sqlite3_finalize(stmt)
-    if (rc /= SQLITE_OK) print '("sqlite3_finalize(): failed")'
+    call print_error(rc, 'sqlite3_finalize')
 
     ! Create table.
-    rc = sqlite3_exec(db, "CREATE TABLE " // DB_TABLE // " (" // &
-                          "id     INTEGER PRIMARY KEY," // &
-                          "string TEXT," // &
-                          "value  INTEGER)", &
-                      c_null_funptr, c_null_ptr, errmsg)
+    rc = sqlite3_exec(db, &
+        "CREATE TABLE " // DB_TABLE // " (" // &
+        "id     INTEGER PRIMARY KEY," // &
+        "string TEXT," // &
+        "value  INTEGER)", c_null_funptr, c_null_ptr, errmsg)
     call print_error(rc, 'sqlite3_exec', errmsg)
 
     ! Insert values.
-    rc = sqlite3_exec(db, "INSERT INTO " // DB_TABLE // "(string, value) VALUES('one', 12345)", &
-                      c_null_funptr, c_null_ptr, errmsg)
+    rc = sqlite3_exec(db, "INSERT INTO " // DB_TABLE // "(string, value) VALUES('one', 12345)", c_null_funptr, c_null_ptr, errmsg)
     call print_error(rc, 'sqlite3_exec', errmsg)
 
     ! Prepare statement.
     rc = sqlite3_prepare_v2(db, "INSERT INTO " // DB_TABLE // "(string, value) VALUES(?, ?)", stmt)
-    if (rc /= SQLITE_OK) print '("sqlite3_prepare_v2(): failed")'
+    call print_error(rc, 'sqlite3_prepare_v2')
 
-    ! Bind values.
-    rc = sqlite3_bind_text(stmt, 1, 'two')
-    if (rc /= SQLITE_OK) print '("sqlite3_bind_text(): failed")'
-
-    rc = sqlite3_bind_int(stmt, 2, 987654321)
-    if (rc /= SQLITE_OK) print '("sqlite3_bind_int(): failed")'
-
-    ! Insert values.
-    rc = sqlite3_step(stmt)
-    if (rc /= SQLITE_DONE) print '("sqlite3_step(): failed")'
+    ! Bind and insert values.
+    rc = sqlite3_bind_text(stmt, 1, 'two');    call print_error(rc, 'sqlite3_bind_text')
+    rc = sqlite3_bind_int(stmt, 2, 987654321); call print_error(rc, 'sqlite3_bind_int')
+    rc = sqlite3_step(stmt);                   call print_error(rc, 'sqlite3_bind_step')
 
     ! Reset statement, add more values.
-    rc = sqlite3_reset(stmt)
-    if (rc /= SQLITE_OK) print '("sqlite3_reset(): failed")'
-    rc = sqlite3_bind_text(stmt, 1, 'three')
-    if (rc /= SQLITE_OK) print '("sqlite3_bind_text(): failed")'
-    rc = sqlite3_bind_int(stmt, 2, 192837465)
-    if (rc /= SQLITE_OK) print '("sqlite3_bind_int(): failed")'
-    rc = sqlite3_step(stmt)
-    if (rc /= SQLITE_DONE) print '("sqlite3_step(): failed")'
-
-    ! Clean up.
-    rc = sqlite3_finalize(stmt)
-    if (rc /= SQLITE_OK) print '("sqlite3_finalize(): failed")'
+    rc = sqlite3_reset(stmt);                  call print_error(rc, 'sqlite3_reset')
+    rc = sqlite3_bind_text(stmt, 1, 'three');  call print_error(rc, 'sqlite3_bind_text')
+    rc = sqlite3_bind_int(stmt, 2, 192837465); call print_error(rc, 'sqlite3_bind_int')
+    rc = sqlite3_step(stmt);                   call print_error(rc, 'sqlite3_bind_step')
+    rc = sqlite3_finalize(stmt);               call print_error(rc, 'sqlite3_finalize')
 
     ! Read values.
     print '(/, "--- TESTING PREPARE/STEP")'
     rc = sqlite3_prepare_v2(db, "SELECT * FROM " // DB_TABLE, stmt)
-    if (rc /= SQLITE_OK) print '("sqlite3_prepare_v2(): failed")'
+    call print_error(rc, 'sqlite3_prepare_v2')
 
     do while (sqlite3_step(stmt) /= SQLITE_DONE)
         call print_values(stmt, 3)
     end do
 
     rc = sqlite3_finalize(stmt)
-    call print_error(rc, 'sqlite3_finalize', errmsg)
+    call print_error(rc, 'sqlite3_finalize')
 
     ! Read values using callback function.
     print '(/, "--- TESTING CALLBACK FUNCTION")'
-    rc = sqlite3_exec(db, "SELECT * FROM " // DB_TABLE, &
-                      c_funloc(exec_callback), c_null_ptr, errmsg)
+    rc = sqlite3_exec(db, "SELECT * FROM " // DB_TABLE, c_funloc(exec_callback), c_null_ptr, errmsg)
     call print_error(rc, 'sqlite3_exec', errmsg)
 
     ! Close SQLite handle.
     rc = sqlite3_close_v2(db)
-    if (rc /= SQLITE_OK) stop 'sqlite3_close(): failed'
-
-    if (c_associated(db)) then
-        print '("warning: database handle still associated (this is probably a compiler bug)")'
-    end if
+    call print_error(rc, 'sqlite3_close_v2')
+    if (c_associated(db)) print '("Warning: database handle still associated (this is probably a compiler bug)")'
 contains
     integer function journal_mode_wal(db) result(rc)
         !! Enables WAL mode.
         type(c_ptr), intent(inout) :: db
 
-        character(len=:), allocatable :: buf
-        integer                       :: err
-        type(c_ptr)                   :: stmt
+        character(:), allocatable :: buf
+        integer                   :: err
+        type(c_ptr)               :: stmt
 
         rc = -1
 
@@ -247,28 +224,27 @@ contains
     end function journal_mode_wal
 
     subroutine print_error(rc, func, errmsg)
-        integer,                       intent(in)    :: rc
-        character(len=*),              intent(in)    :: func
-        character(len=:), allocatable, intent(inout) :: errmsg
+        integer,      intent(in)           :: rc
+        character(*), intent(in)           :: func
+        character(*), intent(in), optional :: errmsg
 
-        if (rc == SQLITE_OK) return
+        if (rc == SQLITE_OK .or. rc == SQLITE_DONE) return
 
-        if (allocated(errmsg)) then
-            print '(a, "(): ", a)', trim(func), errmsg
-            deallocate (errmsg)
+        if (present(errmsg)) then
+            print '("Error: ", a, "(): ", a)', trim(func), trim(errmsg)
             return
         end if
 
-        print '(a, "(): unknown error")', trim(func)
+        print '("Error: ", a, "()")', trim(func)
     end subroutine print_error
 
     subroutine print_values(stmt, ncols)
         type(c_ptr), intent(inout) :: stmt
         integer,     intent(in)    :: ncols
 
-        integer                       :: col_type
-        integer                       :: i, n
-        character(len=:), allocatable :: buf
+        integer                   :: col_type
+        integer                   :: i, n
+        character(:), allocatable :: buf
 
         do i = 0, ncols - 1
             col_type = sqlite3_column_type(stmt, i)

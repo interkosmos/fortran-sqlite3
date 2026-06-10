@@ -7,19 +7,21 @@ AR      = ar
 RM      = /bin/rm
 PREFIX  = /usr/local
 
-DEBUG   = -g -O0 -Wall
+DEBUG   = -g -O0 -Wall -std=f2018
 RELEASE = -O2
+FLAGS   = $(RELEASE)
 
-CFLAGS  = $(RELEASE) -I$(PREFIX)/include
-FFLAGS  = $(RELEASE)
+CFLAGS  = $(FLAGS) -I$(PREFIX)/include
+FFLAGS  = $(FLAGS)
 PPFLAGS = -DSQLITE_ENABLE_COLUMN_METADATA=0
 LDFLAGS = -L$(PREFIX)/lib
 LDLIBS  = -lsqlite3
 ARFLAGS = rcs
 INCDIR  = $(PREFIX)/include/libfortran-sqlite3
 LIBDIR  = $(PREFIX)/lib
-OBJ     = sqlite3.o sqlite3_macro.o sqlite3_util.o
 TARGET  = libfortran-sqlite3.a
+SRC     = src/sqlite3.F90 src/sqlite3_macro.c src/sqlite3_util.F90
+OBJ     = sqlite3.o sqlite3_macro.o sqlite3_util.o
 
 .PHONY: all clean install test
 
@@ -27,9 +29,9 @@ all: $(TARGET)
 
 test: test_sqlite3
 
-$(TARGET): src/sqlite3_macro.c src/sqlite3.F90 src/sqlite3_util.f90
+$(TARGET): $(SRC)
 	$(CC) $(CFLAGS) -c src/sqlite3_macro.c
-	$(FC) $(FFLAGS) -c src/sqlite3_util.f90
+	$(FC) $(FFLAGS) $(PPFLAGS) -c src/sqlite3_util.F90
 	$(FC) $(FFLAGS) $(PPFLAGS) -c src/sqlite3.F90
 	$(AR) $(ARFLAGS) $(TARGET) $(OBJ)
 
