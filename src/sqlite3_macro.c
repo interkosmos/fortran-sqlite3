@@ -5,12 +5,15 @@
  * Author:  Philipp Engel
  * Licence: ISC
  * */
+#include <stdio.h>
 #include <sqlite3.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+int sqlite3_close_(void **);
+int sqlite3_close_v2_(void **);
 int sqlite3_config_int_(int);
 int sqlite3_config_int_funptr_ptr_(int, void *, void *);
 int sqlite3_config_int_int_(int, int);
@@ -18,7 +21,23 @@ int sqlite3_config_int_int64_(int, sqlite3_int64);
 int sqlite3_config_int_int_int_(int, int, int);
 int sqlite3_config_int_ptr_(int, void *);
 int sqlite3_config_int_ptr_int_int_(int, void *, int, int);
+int sqlite3_finalize_(void **);
+void sqlite3_free_(void **);
 void sqlite3_log_(int, const char *);
+
+int sqlite3_close_(void **db)
+{
+    int rc = sqlite3_close((sqlite3 *) *db);
+    *db = NULL;
+    return rc;
+}
+
+int sqlite3_close_v2_(void **db)
+{
+    int rc = sqlite3_close_v2((sqlite3 *) *db);
+    *db = NULL;
+    return rc;
+}
 
 int sqlite3_config_int_(int option)
 {
@@ -53,6 +72,19 @@ int sqlite3_config_int_ptr_(int option, void *ptr)
 int sqlite3_config_int_ptr_int_int_(int option, void *ptr, int arg1, int arg2)
 {
     return sqlite3_config(option, ptr, arg1, arg2);
+}
+
+int sqlite3_finalize_(void **stmt)
+{
+    int rc = sqlite3_finalize((sqlite3_stmt *) *stmt);
+    *stmt = NULL;
+    return rc;
+}
+
+void sqlite3_free_(void **ptr)
+{
+    sqlite3_free(*ptr);
+    *ptr = NULL;
 }
 
 void sqlite3_log_(int iErrCode, const char *str)

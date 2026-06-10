@@ -104,8 +104,8 @@ inserts some values, then reads them back in, and prints them to console.
 ```fortran
 ! example.f90
 program example
-    use, intrinsic :: iso_c_binding
     use :: sqlite3
+    use :: sqlite3_util
     implicit none (type, external)
 
     character(:), allocatable :: errmsg
@@ -118,8 +118,8 @@ program example
 
     ! Create table.
     rc = sqlite3_exec(db, "CREATE TABLE example_table (" // &
-                          "id     INTEGER PRIMARY KEY," // &
-                          "string TEXT," // &
+                          "id     INTEGER PRIMARY KEY,"  // &
+                          "string TEXT,"                 // &
                           "value  INTEGER)", c_null_ptr, c_null_ptr, errmsg)
     if (rc /= SQLITE_OK) print '("sqlite3_exec(): ", a)', errmsg
 
@@ -210,8 +210,8 @@ SQLite default `SQLITE_STATIC`. Therefore, SQLite will make a copy of the given
 value. Otherwise, the passed variable could go out of scope before SQLite was
 able to read the string completely, leading to possible data corruption.
 
-The module `sqlite3_util` contains C interoperability functions/interfaces to
-convert C char pointer to Fortran allocatable character.
+The module `sqlite3_util` contains C interoperability types, functions, and
+interfaces.
 
 ## Licence
 

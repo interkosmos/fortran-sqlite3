@@ -168,6 +168,14 @@ module sqlite3
     integer(c_size_t), parameter, public :: SQLITE_STATIC    =  0
     integer(c_size_t), parameter, public :: SQLITE_TRANSIENT = -1
 
+    integer(c_unsigned_char), parameter, public :: SQLITE_UTF8          = int( 1, c_unsigned_char) !! IMP: R-37514-35566
+    integer(c_unsigned_char), parameter, public :: SQLITE_UTF16LE       = int( 2, c_unsigned_char) !! IMP: R-03371-37637
+    integer(c_unsigned_char), parameter, public :: SQLITE_UTF16BE       = int( 3, c_unsigned_char) !! IMP: R-51971-34154
+    integer(c_unsigned_char), parameter, public :: SQLITE_UTF16         = int( 4, c_unsigned_char) !! Use native byte order
+    integer(c_unsigned_char), parameter, public :: SQLITE_ANY           = int( 5, c_unsigned_char) !! Deprecated
+    integer(c_unsigned_char), parameter, public :: SQLITE_UTF16_ALIGNED = int( 8, c_unsigned_char) !! sqlite3_create_collation only
+    integer(c_unsigned_char), parameter, public :: SQLITE_UTF8_ZT       = int(16, c_unsigned_char) !! Zero-terminated UTF8
+
     abstract interface
         ! int sqlite3_busy_callback(void *udp, int n)
         function sqlite3_busy_callback(udp, n) bind(c)
@@ -180,13 +188,13 @@ module sqlite3
 
         ! void sqlite3_update_callback(void *udp, int type, const char *db_name, const char *tbl_name, sqlite3_int64 rowid)
         subroutine sqlite3_update_callback(udp, type, db_name, tbl_name, rowid) bind(c)
-            import :: c_int, c_int64_t, c_ptr
+            import :: c_int, c_ptr, sqlite3_int64
             implicit none
-            type(c_ptr),        intent(in), value :: udp      !! The application-defined user-data pointer.
-            integer(c_int),     intent(in), value :: type     !! The type of database update. Possible values are SQLITE_INSERT, SQLITE_UPDATE, and SQLITE_DELETE.
-            type(c_ptr),        intent(in), value :: db_name  !! The logical name of the database that is being modified.  Names include main, temp, or any name passed to ATTACH DATABASE.
-            type(c_ptr),        intent(in), value :: tbl_name !! The name of the table that is being modified.
-            integer(c_int64_t), intent(in), value :: rowid    !! The ROWID of the row being modified. In the case of an UPDATE, this is the ROWID value after the modification has taken place.
+            type(c_ptr),            intent(in), value :: udp      !! The application-defined user-data pointer.
+            integer(c_int),         intent(in), value :: type     !! The type of database update. Possible values are SQLITE_INSERT, SQLITE_UPDATE, and SQLITE_DELETE.
+            type(c_ptr),            intent(in), value :: db_name  !! The logical name of the database that is being modified. Names include main, temp, or any name passed to ATTACH DATABASE.
+            type(c_ptr),            intent(in), value :: tbl_name !! The name of the table that is being modified.
+            integer(sqlite3_int64), intent(in), value :: rowid    !! The ROWID of the row being modified. In the case of an UPDATE, this is the ROWID value after the modification has taken place.
         end subroutine sqlite3_update_callback
     end interface
 
@@ -216,6 +224,10 @@ module sqlite3
     public :: sqlite3_bind_parameter_index_
     public :: sqlite3_bind_text
     public :: sqlite3_bind_text_
+    public :: sqlite3_bind_text16
+    public :: sqlite3_bind_text16_
+    public :: sqlite3_bind_text64
+    public :: sqlite3_bind_text64_
     public :: sqlite3_busy_callback
     public :: sqlite3_busy_handler
     public :: sqlite3_busy_timeout
@@ -223,9 +235,7 @@ module sqlite3
     public :: sqlite3_changes64
     public :: sqlite3_clear_bindings
     public :: sqlite3_close
-    public :: sqlite3_close_
     public :: sqlite3_close_v2
-    public :: sqlite3_close_v2_
     public :: sqlite3_column_bytes
     public :: sqlite3_column_count
     public :: sqlite3_column_double
@@ -233,6 +243,7 @@ module sqlite3
     public :: sqlite3_column_int64
     public :: sqlite3_column_name
     public :: sqlite3_column_text
+    public :: sqlite3_column_text_
     public :: sqlite3_column_type
     public :: sqlite3_config
     public :: sqlite3_config_int
@@ -262,7 +273,6 @@ module sqlite3
     public :: sqlite3_exec
     public :: sqlite3_exec_
     public :: sqlite3_finalize
-    public :: sqlite3_finalize_
     public :: sqlite3_free
     public :: sqlite3_initialize
     public :: sqlite3_last_insert_rowid
@@ -304,15 +314,6 @@ module sqlite3
     public :: sqlite3_threadsafe
     public :: sqlite3_update_callback
     public :: sqlite3_update_hook
-
-#if SQLITE_ENABLE_COLUMN_METADATA
-    public :: sqlite3_column_database_name
-    public :: sqlite3_column_database_name_
-    public :: sqlite3_column_table_name
-    public :: sqlite3_column_table_name_
-    public :: sqlite3_column_origin_name
-    public :: sqlite3_column_origin_name_
-#endif
 
     interface
         ! int sqlite3_backup_finish(sqlite3_backup *p)
@@ -379,14 +380,14 @@ module sqlite3
             integer(c_int)                    :: sqlite3_bind_int
         end function sqlite3_bind_int
 
-        ! int sqlite3_bind_int(sqlite3_stmt *stmt, int icol, int val)
+        ! int sqlite3_bind_int64(sqlite3_stmt *stmt, int icol, sqlite3_int64 val)
         function sqlite3_bind_int64(stmt, icol, val) bind(c, name='sqlite3_bind_int64')
-            import :: c_int, c_int64_t, c_ptr
+            import :: c_int, c_ptr, sqlite3_int64
             implicit none
-            type(c_ptr),        intent(in), value :: stmt
-            integer(c_int),     intent(in), value :: icol
-            integer(c_int64_t), intent(in), value :: val
-            integer(c_int)                        :: sqlite3_bind_int64
+            type(c_ptr),            intent(in), value :: stmt
+            integer(c_int),         intent(in), value :: icol
+            integer(sqlite3_int64), intent(in), value :: val
+            integer(c_int)                            :: sqlite3_bind_int64
         end function sqlite3_bind_int64
 
         ! int sqlite3_bind_null(sqlite3_stmt *stmt, int icol)
@@ -427,6 +428,31 @@ module sqlite3
             integer(c_int)                       :: sqlite3_bind_text_
         end function sqlite3_bind_text_
 
+        ! int sqlite3_bind_text16(sqlite3_stmt *stmt, int icol, const void *val, int nbytes, void(*)(void*))
+        function sqlite3_bind_text16_(stmt, icol, text, nbytes, destructor) bind(c, name='sqlite3_bind_text16')
+            import :: c_int, c_ptr, c_size_t
+            implicit none
+            type(c_ptr),       intent(in), value :: stmt
+            integer(c_int),    intent(in), value :: icol
+            type(c_ptr),       intent(in), value :: text
+            integer(c_int),    intent(in), value :: nbytes
+            integer(c_size_t), intent(in), value :: destructor
+            integer(c_int)                       :: sqlite3_bind_text16_
+        end function sqlite3_bind_text16_
+
+        ! int sqlite3_bind_text64(sqlite3_stmt *stmt, int icol, const void *val, sqlite3_uint64 nbytes, void(*)(void*), unsigned char encoding)
+        function sqlite3_bind_text64_(stmt, icol, text, nbytes, destructor, encoding) bind(c, name='sqlite3_bind_text64')
+            import :: c_int, c_ptr, c_size_t, c_unsigned_char, sqlite3_uint64
+            implicit none
+            type(c_ptr),              intent(in), value :: stmt
+            integer(c_int),           intent(in), value :: icol
+            type(c_ptr),              intent(in), value :: text
+            integer(sqlite3_uint64),  intent(in), value :: nbytes
+            integer(c_size_t),        intent(in), value :: destructor
+            integer(c_unsigned_char), intent(in), value :: encoding
+            integer(c_int)                              :: sqlite3_bind_text64_
+        end function sqlite3_bind_text64_
+
         ! int sqlite3_busy_handler(sqlite3 *db, int (*)(void *udp, int n), void *udp)
         function sqlite3_busy_handler(db, busy_callback, udp) bind(c, name='sqlite3_busy_handler')
             import :: c_int, c_ptr, sqlite3_busy_callback
@@ -456,10 +482,10 @@ module sqlite3
 
         ! sqlite3_int64 sqlite3_changes64(sqlite3 *db)
         function sqlite3_changes64(db) bind(c, name='sqlite3_changes64')
-            import :: c_int64_t, c_ptr
+            import :: c_ptr, sqlite3_int64
             implicit none
             type(c_ptr), intent(in), value :: db
-            integer(c_int64_t)             :: sqlite3_changes64
+            integer(sqlite3_int64)         :: sqlite3_changes64
         end function sqlite3_changes64
 
         ! int sqlite3_clear_bindings(sqlite3_stmt *stmt)
@@ -470,21 +496,21 @@ module sqlite3
             integer(c_int)                 :: sqlite3_clear_bindings
         end function sqlite3_clear_bindings
 
-        ! int sqlite3_close(sqlite3 *db)
-        function sqlite3_close_(db) bind(c, name='sqlite3_close')
+        ! int sqlite3_close_(sqlite3 **db)
+        function sqlite3_close(db) bind(c, name='sqlite3_close_')
             import :: c_int, c_ptr
             implicit none
-            type(c_ptr), intent(in), value :: db
-            integer(c_int)                 :: sqlite3_close_
-        end function sqlite3_close_
+            type(c_ptr), intent(inout) :: db
+            integer(c_int)             :: sqlite3_close
+        end function sqlite3_close
 
-        ! int sqlite3_close_v2(sqlite3 *db)
-        function sqlite3_close_v2_(db) bind(c, name='sqlite3_close_v2')
+        ! int sqlite3_close_v2_(sqlite3 **db)
+        function sqlite3_close_v2(db) bind(c, name='sqlite3_close_v2_')
             import :: c_int, c_ptr
             implicit none
-            type(c_ptr), intent(in), value :: db
-            integer(c_int)                 :: sqlite3_close_v2_
-        end function sqlite3_close_v2_
+            type(c_ptr), intent(inout) :: db
+            integer(c_int)             :: sqlite3_close_v2
+        end function sqlite3_close_v2
 
         ! int sqlite3_column_bytes(sqlite3_stmt *stmt, int icol)
         function sqlite3_column_bytes(stmt, icol) bind(c, name='sqlite3_column_bytes')
@@ -521,13 +547,13 @@ module sqlite3
             integer(c_int)                    :: sqlite3_column_int
         end function sqlite3_column_int
 
-       ! sqlite3_int64 sqlite3_column_int64(sqlite3_stmt *stmt, int icol)
+        ! sqlite3_int64 sqlite3_column_int64(sqlite3_stmt *stmt, int icol)
         function sqlite3_column_int64(stmt, icol) bind(c, name='sqlite3_column_int64')
-            import :: c_int, c_int64_t, c_ptr
+            import :: c_int, c_ptr, sqlite3_int64
             implicit none
             type(c_ptr),    intent(in), value :: stmt
             integer(c_int), intent(in), value :: icol
-            integer(c_int)                    :: sqlite3_column_int64
+            integer(sqlite3_int64)            :: sqlite3_column_int64
         end function sqlite3_column_int64
 
         ! const char *sqlite3_column_name(sqlite3_stmt *stmt, int icol)
@@ -584,13 +610,13 @@ module sqlite3
             integer(c_int)                    :: sqlite3_config_int_int_
         end function sqlite3_config_int_int_
 
-        ! int sqlite3_config_int_int64_(int option, int arg)
+        ! int sqlite3_config_int_int64_(int option, sqlite3_int64 arg)
         function sqlite3_config_int_int64_(option, arg) bind(c, name='sqlite3_config_int_int64_')
-            import :: c_int, c_int64_t
+            import :: c_int, sqlite3_int64
             implicit none
-            integer(c_int),     intent(in), value :: option
-            integer(c_int64_t), intent(in), value :: arg
-            integer(c_int)                        :: sqlite3_config_int_int64_
+            integer(c_int),         intent(in), value :: option
+            integer(sqlite3_int64), intent(in), value :: arg
+            integer(c_int)                            :: sqlite3_config_int_int64_
         end function sqlite3_config_int_int64_
 
         ! int sqlite3_config_int_int_int_(int option, int arg1, int arg2)
@@ -696,13 +722,13 @@ module sqlite3
             integer(c_int)                       :: sqlite3_exec_
         end function sqlite3_exec_
 
-        ! int sqlite3_finalize(sqlite3_stmt *stmt)
-        function sqlite3_finalize_(stmt) bind(c, name='sqlite3_finalize')
+        ! int sqlite3_finalize_(sqlite3_stmt **stmt)
+        function sqlite3_finalize(stmt) bind(c, name='sqlite3_finalize_')
             import :: c_int, c_ptr
             implicit none
-            type(c_ptr), intent(in), value :: stmt
-            integer(c_int)                 :: sqlite3_finalize_
-        end function sqlite3_finalize_
+            type(c_ptr), intent(inout) :: stmt
+            integer(c_int)             :: sqlite3_finalize
+        end function sqlite3_finalize
 
         ! int sqlite3_initialize(void)
         function sqlite3_initialize() bind(c, name='sqlite3_initialize')
@@ -713,10 +739,10 @@ module sqlite3
 
         ! sqlite3_int64 sqlite3_last_insert_rowid(sqlite3 *db)
         function sqlite3_last_insert_rowid(db) bind(c, name='sqlite3_last_insert_rowid')
-            import :: c_int64_t, c_ptr
+            import :: c_ptr, sqlite3_int64
             implicit none
             type(c_ptr), intent(in), value :: db
-            integer(c_int64_t)             :: sqlite3_last_insert_rowid
+            integer(sqlite3_int64)         :: sqlite3_last_insert_rowid
         end function sqlite3_last_insert_rowid
 
         ! const char *sqlite3_libversion(void)
@@ -901,10 +927,10 @@ module sqlite3
         function sqlite3_update_hook(db, update_callback, udp) bind(c, name='sqlite3_update_hook')
             import :: c_ptr, sqlite3_update_callback
             implicit none
-            type(c_ptr), intent(in), value     :: db              !! A database connection.
-            procedure(sqlite3_update_callback) :: update_callback !! An application-defined callback function that is called when a database row is modified.
-            type(c_ptr), intent(in), value     :: udp             !! An application-defined user-data pointer. This value is made available to the update callback.
-            type(c_ptr)                        :: sqlite3_update_hook
+            type(c_ptr), intent(in), value     :: db                  !! A database connection.
+            procedure(sqlite3_update_callback) :: update_callback     !! An application-defined callback function that is called when a database row is modified.
+            type(c_ptr), intent(in), value     :: udp                 !! An application-defined user-data pointer. This value is made available to the update callback.
+            type(c_ptr)                        :: sqlite3_update_hook !! Argument udp or NULL.
         end function sqlite3_update_hook
 
         function sqlite3_threadsafe() bind(c, name='sqlite3_threadsafe')
@@ -913,11 +939,11 @@ module sqlite3
             integer(c_int) :: sqlite3_threadsafe
         end function sqlite3_threadsafe
 
-        ! void sqlite3_free(void *ptr)
-        subroutine sqlite3_free(ptr) bind(c, name='sqlite3_free')
+        ! void sqlite3_free_(void **ptr)
+        subroutine sqlite3_free(ptr) bind(c, name='sqlite3_free_')
             import :: c_ptr
             implicit none
-            type(c_ptr), intent(in), value :: ptr
+            type(c_ptr), intent(inout) :: ptr
         end subroutine sqlite3_free
 
         ! void sqlite3_log_(int iErrCode, const char *str)
@@ -963,6 +989,14 @@ module sqlite3
     end interface
 
 #if SQLITE_ENABLE_COLUMN_METADATA
+
+    public :: sqlite3_column_database_name
+    public :: sqlite3_column_database_name_
+    public :: sqlite3_column_table_name
+    public :: sqlite3_column_table_name_
+    public :: sqlite3_column_origin_name
+    public :: sqlite3_column_origin_name_
+
     interface
         ! const char *sqlite3_column_database_name(sqlite3_stmt *stmt, int icol)
         function sqlite3_column_database_name_(stmt, icol) bind(c, name='sqlite3_column_database_name')
@@ -991,6 +1025,7 @@ module sqlite3
             type(c_ptr)                       :: sqlite3_column_table_name_
         end function sqlite3_column_table_name_
     end interface
+
 #endif
 contains
     type(c_ptr) function sqlite3_backup_init(dest, dest_name, source, source_name) result(ptr)
@@ -1025,19 +1060,48 @@ contains
         rc = sqlite3_bind_text_(stmt, icol, val, len(val), SQLITE_TRANSIENT)
     end function sqlite3_bind_text
 
-    integer function sqlite3_close(db) result(rc)
-        type(c_ptr), intent(inout) :: db
+    integer function sqlite3_bind_text16(stmt, icol, val, nbytes, destructor) result(rc)
+        !! Binds UTF-16 text to column. This wrapper passes destructor
+        !! `SQLITE_TRANSIENT` by default!
+        type(c_ptr),       intent(inout)        :: stmt
+        integer,           intent(in)           :: icol
+        type(c_ptr),       intent(in)           :: val
+        integer,           intent(in)           :: nbytes
+        integer(c_size_t), intent(in), optional :: destructor
 
-        rc = sqlite3_close_(db)
-        if (rc == SQLITE_OK) db = c_null_ptr
-    end function sqlite3_close
+        if (present(destructor)) then
+            rc = sqlite3_bind_text16_(stmt, icol, val, nbytes, destructor)
+            return
+        end if
 
-    integer function sqlite3_close_v2(db) result(rc)
-        type(c_ptr), intent(inout) :: db
+        rc = sqlite3_bind_text16_(stmt, icol, val, nbytes, SQLITE_TRANSIENT)
+    end function sqlite3_bind_text16
 
-        rc = sqlite3_close_v2_(db)
-        if (rc == SQLITE_OK) db = c_null_ptr
-    end function sqlite3_close_v2
+    integer function sqlite3_bind_text64(stmt, icol, val, nbytes, destructor, encoding) result(rc)
+        !! Binds Unicode text to column. This wrapper passes destructor
+        !! `SQLITE_TRANSIENT` by default!
+        type(c_ptr),              intent(inout)        :: stmt
+        integer,                  intent(in)           :: icol
+        type(c_ptr),              intent(in)           :: val
+        integer(sqlite3_int64),   intent(in)           :: nbytes
+        integer(c_size_t),        intent(in), optional :: destructor
+        integer(c_unsigned_char), intent(in), optional :: encoding
+
+        integer(c_unsigned_char) :: encoding_
+
+        if (present(encoding)) then
+            encoding_ = encoding
+        else
+            encoding_ = SQLITE_UTF16
+        end if
+
+        if (present(destructor)) then
+            rc = sqlite3_bind_text64_(stmt, icol, val, nbytes, destructor, encoding_)
+            return
+        end if
+
+        rc = sqlite3_bind_text64_(stmt, icol, val, nbytes, SQLITE_TRANSIENT, encoding_)
+    end function sqlite3_bind_text64
 
     function sqlite3_column_name(stmt, icol) result(name)
         type(c_ptr), intent(inout) :: stmt
@@ -1095,8 +1159,8 @@ contains
     end function sqlite3_config_int_int
 
     integer function sqlite3_config_int_int64(option, arg) result(rc)
-        integer,            intent(in) :: option
-        integer(c_int64_t), intent(in) :: arg
+        integer,                intent(in) :: option
+        integer(sqlite3_int64), intent(in) :: arg
 
         rc = sqlite3_config_int_int64_(option, arg)
     end function sqlite3_config_int_int64
@@ -1168,13 +1232,6 @@ contains
         rc = sqlite3_exec_(db, f_c_str(sql), callback, client_data, ptr)
         if (present(errmsg)) call c_f_str_ptr(ptr, errmsg)
     end function sqlite3_exec
-
-    integer function sqlite3_finalize(stmt) result(rc)
-        type(c_ptr), intent(inout) :: stmt
-
-        rc = sqlite3_finalize_(stmt)
-        if (rc == SQLITE_OK) stmt = c_null_ptr
-    end function sqlite3_finalize
 
     function sqlite3_libversion() result(version)
         type(c_ptr)               :: ptr
@@ -1281,6 +1338,7 @@ contains
     end subroutine sqlite3_log
 
 #if SQLITE_ENABLE_COLUMN_METADATA
+
     function sqlite3_column_database_name(stmt, icol) result(name)
         type(c_ptr), intent(inout) :: stmt
         integer,     intent(in)    :: icol
@@ -1313,5 +1371,6 @@ contains
         ptr = sqlite3_column_table_name_(stmt, icol)
         call c_f_str_ptr(ptr, name)
     end function sqlite3_column_table_name
+
 #endif
 end module sqlite3

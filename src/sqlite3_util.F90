@@ -5,20 +5,32 @@
 ! Author:  Philipp Engel
 ! Licence: ISC
 module sqlite3_util
-    use, intrinsic :: iso_c_binding, only: c_char, c_double, c_int, c_int64_t, c_size_t, &
+    use, intrinsic :: iso_c_binding, only: c_char, c_double, c_int, c_int64_t, c_signed_char, c_size_t, &
                                            c_funptr, c_ptr, c_null_char, c_null_funptr, c_null_ptr, &
-                                           c_associated, c_f_pointer, c_funloc
+                                           c_associated, c_f_pointer, c_funloc, c_loc
 #if HAS_UNSIGNED
-    use, intrinsic :: iso_c_binding, only: c_unsigned
+
+    use, intrinsic :: iso_c_binding, only: c_unsigned, c_unsigned_char, c_uint64_t
+
 #endif
     implicit none (type, external)
     private
 
 #if HAS_UNSIGNED
+
     public :: c_unsigned
+    public :: c_unsigned_char
+
 #else
-    integer, parameter, public :: c_unsigned = c_int
+
+    integer, parameter         :: c_uint64_t      = c_int64_t
+    integer, parameter, public :: c_unsigned      = c_int
+    integer, parameter, public :: c_unsigned_char = c_signed_char
+
 #endif
+
+    integer, parameter, public :: sqlite3_int64  = c_int64_t
+    integer, parameter, public :: sqlite3_uint64 = c_uint64_t
 
     public :: c_char
     public :: c_double
@@ -33,6 +45,7 @@ module sqlite3_util
     public :: c_associated
     public :: c_f_pointer
     public :: c_funloc
+    public :: c_loc
 
     public :: c_f_str_ptr
     public :: f_c_str

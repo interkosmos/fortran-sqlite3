@@ -87,7 +87,7 @@ program test_sqlite3
     use :: callbacks
     implicit none (type, external)
 
-    character(*), parameter :: DB_FILE  = 'test.sqlite'
+    character(*), parameter :: DB_FILE  = ':memory:'
     character(*), parameter :: DB_TABLE = 'test_table'
 
     character(:), allocatable :: db_name ! Database name.
@@ -149,8 +149,8 @@ program test_sqlite3
     ! Create table.
     rc = sqlite3_exec(db, &
         "CREATE TABLE " // DB_TABLE // " (" // &
-        "id     INTEGER PRIMARY KEY," // &
-        "string TEXT," // &
+        "id     INTEGER PRIMARY KEY,"       // &
+        "string TEXT,"                      // &
         "value  INTEGER)", c_null_funptr, c_null_ptr, errmsg)
     call print_error(rc, 'sqlite3_exec', errmsg)
 
@@ -198,29 +198,30 @@ program test_sqlite3
 contains
     integer function journal_mode_wal(db) result(rc)
         !! Enables WAL mode.
+        character(*), parameter :: QUERY = "PRAGMA journal_mode=WAL"
+
         type(c_ptr), intent(inout) :: db
 
         character(:), allocatable :: buf
-        integer                   :: err
+        integer                   :: stat
         type(c_ptr)               :: stmt
 
         rc = -1
 
         sql_block: block
-            err = sqlite3_prepare_v2(db, "PRAGMA journal_mode=WAL", stmt)
-            if (err /= SQLITE_OK) exit sql_block
+            stat = sqlite3_prepare_v2(db, QUERY, stmt)
+            if (stat /= SQLITE_OK) exit sql_block
 
-            err = sqlite3_step(stmt)
-            if (err /= SQLITE_ROW) exit sql_block
+            stat = sqlite3_step(stmt)
+            if (stat /= SQLITE_ROW) exit sql_block
 
             buf = sqlite3_column_text(stmt, 0)
-            if (.not. allocated(buf)) exit sql_block
             if (buf /= 'wal') exit sql_block
 
             rc = 0
         end block sql_block
 
-        err = sqlite3_finalize(stmt)
+        stat = sqlite3_finalize(stmt)
     end function journal_mode_wal
 
     subroutine print_error(rc, func, errmsg)
@@ -242,9 +243,8 @@ contains
         type(c_ptr), intent(inout) :: stmt
         integer,     intent(in)    :: ncols
 
-        integer                   :: col_type
-        integer                   :: i, n
         character(:), allocatable :: buf
+        integer                   :: col_type, i, n
 
         do i = 0, ncols - 1
             col_type = sqlite3_column_type(stmt, i)

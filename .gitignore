@@ -1,13 +1,10 @@
-*.a
-*.so
-
-# Distribution / packaging
-env/
 build/
 dist/
+dump/
+env/
 var/
-
-# Other stuff
-*.swp
+*.a
 *.mod
 *.o
+*.so
+*.swp

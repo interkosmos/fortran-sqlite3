@@ -26,7 +26,6 @@ OBJ     = sqlite3.o sqlite3_macro.o sqlite3_util.o
 .PHONY: all clean install test
 
 all: $(TARGET)
-
 test: test_sqlite3
 
 $(TARGET): $(SRC)
@@ -51,4 +50,3 @@ clean:
 	$(RM) -rf *.o
 	$(RM) -rf $(TARGET)
 	$(RM) -rf test_sqlite3
-	$(RM) -rf test.sqlite
