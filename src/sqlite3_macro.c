@@ -27,14 +27,16 @@ void sqlite3_log_(int, const char *);
 
 int sqlite3_close_(void **db)
 {
-    int rc = sqlite3_close((sqlite3 *) *db);
+    int rc;
+    rc =sqlite3_close((sqlite3 *) *db);
     *db = NULL;
     return rc;
 }
 
 int sqlite3_close_v2_(void **db)
 {
-    int rc = sqlite3_close_v2((sqlite3 *) *db);
+    int rc;
+    rc = sqlite3_close_v2((sqlite3 *) *db);
     *db = NULL;
     return rc;
 }
@@ -76,7 +78,8 @@ int sqlite3_config_int_ptr_int_int_(int option, void *ptr, int arg1, int arg2)
 
 int sqlite3_finalize_(void **stmt)
 {
-    int rc = sqlite3_finalize((sqlite3_stmt *) *stmt);
+    int rc;
+    sqlite3_finalize((sqlite3_stmt *) *stmt);
     *stmt = NULL;
     return rc;
 }

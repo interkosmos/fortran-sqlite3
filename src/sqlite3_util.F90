@@ -69,7 +69,7 @@ contains
 
             if (.not. c_associated(c)) exit copy_block
             n = c_strlen(c)
-            if (n < 0) exit copy_block
+            if (n <= 0) exit copy_block
 
             block
                 character(n), pointer :: ptr
