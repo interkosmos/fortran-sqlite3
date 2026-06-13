@@ -210,8 +210,7 @@ SQLite default `SQLITE_STATIC`. Therefore, SQLite will make a copy of the given
 value. Otherwise, the passed variable could go out of scope before SQLite was
 able to read the string completely, leading to possible data corruption.
 
-The module `sqlite3_util` contains C interoperability types, functions, and
-interfaces.
+The module `sqlite3_util` contains C interoperability types and procedures.
 
 ## Licence
 

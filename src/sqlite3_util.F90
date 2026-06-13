@@ -55,9 +55,6 @@ contains
         type(c_ptr),               intent(in)  :: c !! C string pointer.
         character(:), allocatable, intent(out) :: f !! Fortran string.
 
-        integer           :: stat
-        integer(c_size_t) :: n
-
         interface
             function c_strlen(str) bind(c, name='strlen')
                 import :: c_ptr, c_size_t
@@ -68,15 +65,15 @@ contains
         end interface
 
         copy_block: block
+            integer(c_size_t) :: n
+
             if (.not. c_associated(c)) exit copy_block
-            n = int(c_strlen(c), c_size_t)
+            n = c_strlen(c)
             if (n < 0) exit copy_block
 
             block
                 character(n), pointer :: ptr
                 call c_f_pointer(c, ptr)
-                allocate (character(n) :: f, stat=stat)
-                if (stat /= 0) exit copy_block
                 f = ptr
             end block
 
