@@ -457,10 +457,10 @@ module sqlite3
         function sqlite3_busy_handler(db, busy_callback, udp) bind(c, name='sqlite3_busy_handler')
             import :: c_int, c_ptr, sqlite3_busy_callback
             implicit none
-            type(c_ptr),    intent(in), value :: db
-            procedure(sqlite3_busy_callback)  :: busy_callback
-            type(c_ptr),    intent(in), value :: udp
-            integer(c_int)                    :: sqlite3_busy_handler
+            type(c_ptr), intent(in), value            :: db
+            procedure(sqlite3_busy_callback), bind(c) :: busy_callback
+            type(c_ptr), intent(in), value            :: udp
+            integer(c_int)                            :: sqlite3_busy_handler
         end function sqlite3_busy_handler
 
         ! int sqlite3_busy_timeout(sqlite3 *db, int ms)
@@ -927,10 +927,10 @@ module sqlite3
         function sqlite3_update_hook(db, update_callback, udp) bind(c, name='sqlite3_update_hook')
             import :: c_ptr, sqlite3_update_callback
             implicit none
-            type(c_ptr), intent(in), value     :: db                  !! A database connection.
-            procedure(sqlite3_update_callback) :: update_callback     !! An application-defined callback function that is called when a database row is modified.
-            type(c_ptr), intent(in), value     :: udp                 !! An application-defined user-data pointer. This value is made available to the update callback.
-            type(c_ptr)                        :: sqlite3_update_hook !! Argument udp or NULL.
+            type(c_ptr), intent(in), value              :: db                  !! A database connection.
+            procedure(sqlite3_update_callback), bind(c) :: update_callback     !! An application-defined callback function that is called when a database row is modified.
+            type(c_ptr), intent(in), value              :: udp                 !! An application-defined user-data pointer. This value is made available to the update callback.
+            type(c_ptr)                                 :: sqlite3_update_hook !! Argument udp or NULL.
         end function sqlite3_update_hook
 
         function sqlite3_threadsafe() bind(c, name='sqlite3_threadsafe')
